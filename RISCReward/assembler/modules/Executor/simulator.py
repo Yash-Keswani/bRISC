@@ -1,0 +1,71 @@
+import os
+
+from .pipeline import Pipeline, LineInfo
+from .storage import Registry, Memory
+
+class Executor:
+	# initialise memory and registry
+	mem: Memory
+	reg: Registry
+	size: int
+	
+	@classmethod
+	def load_code(cls, text: str):
+		cls.mem = Memory(256)
+		cls.reg = Registry()
+		Pipeline(cls.mem, cls.reg)
+		cls.size = 0
+		
+		for i, line in enumerate(text.strip().split("\n")):
+			cls.mem.write_loc(i, int(line, base=2))
+			cls.size += 1
+
+	@classmethod
+	def process(cls, pipelined=False):
+		toret: str = ""
+		
+		if not pipelined:
+			lineobj = [LineInfo()] * 5
+		else:
+			lineobj = [LineInfo() for _ in range(5)]
+		
+		STALLING: bool
+		BRANCHING: bool
+		while cls.reg.PC < cls.size or any((not lineobj[x].empty() for x in range(5))) or cls.reg.PC == 0:
+			if cls.reg.PC < cls.size:
+				lineobj[0].line_text = f'{cls.mem.read_loc(cls.reg.PC):016b}'
+			else:
+				lineobj[0].line_text = None
+				
+			Pipeline.F(lineobj[0])
+			Pipeline.D(lineobj[1])
+			
+			STALLING = (-1 in lineobj[1].srcs) if not lineobj[1].empty() else False
+			
+			if not lineobj[0].empty() and not STALLING:
+				cls.reg.PC = lineobj[0].lno + 1  # Branching Speculation!
+				
+			BRANCHING = Pipeline.X(lineobj[2])
+			
+			if BRANCHING:  # Branching happened
+				lineobj[0] = lineobj[1] = LineInfo()
+				
+			Pipeline.M(lineobj[3])
+			Pipeline.W(lineobj[4])
+			
+			if not lineobj[4].empty():
+				if os.environ.get("TESTING") == '1':
+					toret += f"{lineobj[4].lno:08b} " + cls.reg.fetch_reg()
+				else:
+					toret += lineobj[4].__str__()+"\n"
+		
+			if not pipelined:
+				lineobj = [LineInfo()] * 5
+			else:
+				lineobj.pop()
+				lineobj.insert(0 + 2*STALLING, LineInfo())
+	
+		if os.environ.get("TESTING") == '1':
+			toret += cls.mem.fetch_mem()
+		return toret
+	
