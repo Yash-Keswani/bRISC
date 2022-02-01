@@ -18,8 +18,6 @@ class LU:
 	# multiply two integers
 	@staticmethod
 	def mul(params: list[int]):
-		if params[1] > 30000:
-			print("HALT")
 		return {
 			'main': (params[0] * params[1]) % 65536,
 			'flags': int(f"{int(params[0] * params[1] >= 65536)}000", base=2)

@@ -2,61 +2,68 @@
   "add": [
     {
       "opcode": "0b00000",
-      "semantics": "Performs reg1 = reg2 + reg3. If the computation overflows, then the overflow flag is set",
-      "syntax": "add reg1 reg2 reg3",
+      "semantics": "Stores <R2> + <R3> in <R1>",
+      "notes": "May set the overflow flag. Upper limit is 65536",
+      "syntax": "ADD <R1> <R2> <R3>",
       "type": "A"
     }
   ],
   "sub": [
     {
       "opcode": "0b00001",
-      "semantics": "Performs reg1 = reg2 - reg3. In case reg3 In case reg3 > reg2, 0 is writte to reg1 and overflow flag is set. ",
-      "syntax": "sub reg1 reg2 reg3",
+      "semantics": "Stores <R2> - <R3> in <R1>.",
+      "notes": "May set the overflow flag. Lower Limit is 0",
+      "syntax": "SUB <R1> <R2> <R3>",
       "type": "A"
     }
   ],
   "mov": [
     {
       "opcode": "0b00010",
-      "semantics": "Performs reg1 = $Imm . where Imm is a 8 bit value.",
-      "syntax": "mov reg1 $Imm",
+      "semantics": "Copies the value of $<Imm> into <R1>.",
+      "notes": "<Imm> must be an 8-bit value.",
+      "syntax": "MOV <R1> $<Imm>",
       "type": "B"
     },
     {
       "opcode": "0b00011",
-      "semantics": "Performs reg1 = reg2 ",
-      "syntax": "mov reg1 reg2",
+      "semantics": "Copies the value of <R2> into <R1>.",
+      "notes": "Special-use registers can be read from, but not written into.",
+      "syntax": "MOV <R1> <R2>",
       "type": "C"
     }
   ],
   "ld": [
     {
       "opcode": "0b00100",
-      "semantics": " Loads data from mem_addr into reg1.",
-      "syntax": "ld reg1 mem_addr",
+      "semantics": "Loads the value from memory address <ADDR> to <R1>.",
+      "notes": "Memory address has a cap of 512. Avoid messing with instructions in the memory.",
+      "syntax": "LD <R1> <ADDR>",
       "type": "D"
     }
   ],
   "st": [
     {
       "opcode": "0b00101",
-      "semantics": "Stores data from reg1 to mem_addr. ",
-      "syntax": "st reg1 mem_addr",
+      "semantics": "Stores the value in <R1> at the memory address <ADDR>.",
+      "notes": "Memory address has a cap of 512. Avoid messing with instructions in the memory.",
+      "syntax": "ST <R1> <ADDR>",
       "type": "D"
     }
   ],
   "mul": [
     {
       "opcode": "0b00110",
-      "semantics": "Performs reg1 = reg2 x reg3. If the computation overflows, then the overflow flag is set. ",
-      "syntax": "mul reg1 reg2 reg3",
+      "semantics": "Stores <R2> * <R3> in R1.",
+      "notes": "May set the overflow flag. Upper limit if 65536.",
+      "syntax": "MUL <R1> <R2> <R3>",
       "type": "A"
     }
   ],
   "div": [
     {
       "opcode": "0b00111",
-      "semantics": "Performs reg3/reg4. Stores the quotient in R0 and the remainder in R1. ",
+      "semantics": "Performs R3 / R4. Stores the quotient in R0 and the remainder in R1. ",
       "syntax": "div reg3 reg4",
       "type": "C"
     }
@@ -136,24 +143,26 @@
   "jgt": [
     {
       "opcode": "0b10001",
-      "semantics": "Jumps to mem_addr if the greater than flag is set (greater than flag = 1), where mem_addr is a memory address",
-      "syntax": "jgt mem_addr ",
+      "semantics": "Jumps to <address> if greater-than is present in the FLAGS register.",
+      "syntax": "jgt <address>",
       "type": "E"
     }
   ],
   "je": [
     {
       "opcode": "0b10010",
-      "semantics": "Jumps to mem_addr if the equal flag is set (equal flag = 1), where mem_addr is a memory address",
-      "syntax": "je mem_addr ",
+      "semantics": "Jumps to <address> if equality is present in the FLAGS register.",
+      "notes": "",
+      "syntax": "je <address>",
       "type": "E"
     }
   ],
   "hlt": [
     {
       "opcode": "0b10011",
-      "semantics": "Stops the machine from executing until reset",
-      "syntax": "hlt ",
+      "semantics": "Stops the execution of the code.",
+      "notes": "Any lines after this instruction will not be read. Can only be present at the end of a program [blank lines excluded]",
+      "syntax": "hlt",
       "type": "F"
     }
   ]

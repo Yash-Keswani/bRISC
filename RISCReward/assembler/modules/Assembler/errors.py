@@ -80,7 +80,6 @@ def check_cat(opc: int, cat: str, line: str, mem: Memory, PC: int) -> tuple[bool
 						errors.extend([Error(f"invalid register name: {x}", PC) for x in invalid_registers([params[1]])])
 					
 					if len(invalid_registers_but_you_can_use_flags([params[2]])) > 0:
-						print(invalid_registers_but_you_can_use_flags([params[2]]))
 						errors.extend([Error(f"invalid register name: {x}", PC) for x in invalid_registers([params[2]])])
 				except IndexError:
 					pass

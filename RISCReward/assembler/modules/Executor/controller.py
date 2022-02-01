@@ -32,6 +32,7 @@ class CU:
 	# gets the values used as source operand/s by a line of code
 	@classmethod
 	def fetch_sources(cls, cat, line, mem: Memory, reg: Registry) -> list[int]:
+		"""
 		match cat:
 			case 'A':
 				sources = [
@@ -60,12 +61,41 @@ class CU:
 				]
 			case 'F' | _:
 				sources = []
-		
+		"""
+		if cat == 'A':
+			sources = [
+				reg.read_reg(int(line[10:13], base=2)),
+				reg.read_reg(int(line[13:], base=2))
+			]
+		elif cat == 'B':
+			sources = [
+				reg.read_reg(int(line[5:8], base=2)),
+				int(line[8:], base=2)
+			]
+		elif cat == 'C':
+			sources = [
+				reg.read_reg(int(line[10:13], base=2)),
+				reg.read_reg(int(line[13:], base=2))
+			]
+		elif cat == 'D':
+			sources = [
+				reg.read_reg(int(line[5:8], base=2)),
+				mem.read_loc(int(line[8:], base=2))
+			]
+		elif cat == 'E':
+			sources = [
+				int(line[8:], base=2),
+				reg.read_reg(7)  # subjected to locking and unlocking
+			]
+		else:
+			sources = []
+			
 		return sources
 	
 	# gets the values used as destination operand/s by a line of code
 	@staticmethod
 	def fetch_destinations(opc: int, cat: str, line: str) -> list:
+		"""
 		match cat:
 			case 'A':
 				dests = [
@@ -89,14 +119,39 @@ class CU:
 					int(line[8:], base=2)
 				]
 			case 'E' | 'F' | _:
-				dests = []
+				dests = []"""
 		
+		if cat == 'A':
+			dests = [
+				int(line[7:10], base=2)
+			]
+		elif cat == 'B':
+			dests = [
+				int(line[5:8], base=2)
+			]
+		elif cat == 'C':
+			if opc == 0b00111:
+				dests = [0, 1]
+			else:
+				dests = [
+					int(line[10:13], base=2),
+					int(line[13:], base=2)
+				]
+		elif cat == 'D':
+			dests = [
+				int(line[5:8], base=2),
+				int(line[8:], base=2)
+			]
+		else:
+			dests = []
+			
 		return dests
 	
 	# handles output after execution is done. returns whether or not there are lines afterwards.
 	@staticmethod
-	def store_results_reg(dests, output, opc: int, cat: str, reg: Registry) -> bool:
+	def store_results_reg(dests, output, opc: int, cat: str, reg: Registry) -> None:
 		reg.set_flags(output['flags'])
+		"""
 		match cat:
 			case 'A' | 'B':
 				reg.write_reg(dests[0], output['main'])
@@ -111,8 +166,18 @@ class CU:
 					reg.write_reg(dests[0], output['main'])
 			case 'F':
 				return False
-		
-		return True
+		"""
+		if cat in ['A', 'B']:
+			reg.write_reg(dests[0], output['main'])
+		elif cat == 'C':
+			if opc in (0b00011, 0b01101):  # mov / not
+				reg.write_reg(dests[0], output['main'])
+			elif opc == 0b00111:  # div
+				reg.write_reg(0, output['main'])
+				reg.write_reg(1, output['alter'])
+		elif cat == 'D':
+			if not opc & 1:
+				reg.write_reg(dests[0], output['main'])
 	
 	# stores any relevant results into the memory
 	@staticmethod

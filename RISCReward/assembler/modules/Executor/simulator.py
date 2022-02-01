@@ -40,9 +40,6 @@ class Executor:
 			Pipeline.F(lineobj[0])
 			Pipeline.D(lineobj[1])
 			
-			if lineobj[0].lno == 35:
-				print("hLAT")
-			
 			STALLING = (-1 in lineobj[1].srcs) if not lineobj[1].empty() else False
 			
 			if not lineobj[0].empty() and not STALLING:
