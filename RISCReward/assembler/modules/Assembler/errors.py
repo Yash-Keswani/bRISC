@@ -72,6 +72,7 @@ def check_cat(opc: int, cat: str, line: str, mem: Memory, PC: int) -> tuple[bool
 	if l0 != l:
 		errors.append(Error(f"{l - 1} parameter/s given, but the {params[0]} instruction expects {l0 - 1}", PC))
 	
+	"""
 	match cat:
 		case 'A' | 'C':
 			if opc == 0b00011:
@@ -117,6 +118,51 @@ def check_cat(opc: int, cat: str, line: str, mem: Memory, PC: int) -> tuple[bool
 					errors.append(Error(f"invalid label name: {params[1]}", PC))
 			except IndexError:
 				pass
+	"""
+	if cat == 'A' or cat == 'C':
+		if opc == 0b00011:
+			try:
+				if len(invalid_registers([params[1]])) > 0:
+					errors.extend([Error(f"invalid register name: {x}", PC) for x in invalid_registers([params[1]])])
+				
+				if len(invalid_registers_but_you_can_use_flags([params[2]])) > 0:
+					errors.extend([Error(f"invalid register name: {x}", PC) for x in invalid_registers([params[2]])])
+			except IndexError:
+				pass
+		
+		else:
+			try:
+				if len(invalid_registers(params[1:])) > 0:
+					errors.extend([Error(f"invalid register name: {x}", PC) for x in invalid_registers(params[1:])])
+			except IndexError:
+				pass
+	
+	elif cat == 'B':
+		try:
+			if len(invalid_registers([params[1]])) > 0:
+				errors.extend([Error(f"invalid register name: {x}", PC) for x in invalid_registers([params[1]])])
+			
+			if invalid_imm(params[2])[0]:
+				errors.append(Error(invalid_imm(params[2])[1], PC))
+		except IndexError:
+			pass
+	
+	elif cat == 'D':
+		try:
+			if len(invalid_registers([params[1]])) > 0:
+				errors.extend([Error(f"invalid register name: {x}", PC) for x in invalid_registers([params[1]])])
+			
+			if not mem.has_var(params[2]):
+				errors.append(Error(f"invalid variable name: {params[2]}", PC))
+		except IndexError:
+			pass
+	
+	elif cat == 'E':
+		try:
+			if not mem.has_label(params[1]):
+				errors.append(Error(f"invalid label name: {params[1]}", PC))
+		except IndexError:
+			pass
 	
 	return (len(errors) > 0, errors)
 
