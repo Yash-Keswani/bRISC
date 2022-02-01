@@ -1,22 +1,31 @@
-class Registry:
+class Locker:
+	def __init__(self):
+		self.locks = {}
+		
+	# holds a lock on a register
+	def hold(self, loc: int) -> None:
+		if self.locks.get(loc):
+			self.locks[loc] += 1
+		else:
+			self.locks[loc] = 1
+	
+	# checks if a location is locked - if the location isnt present in the lock table, it returns false
+	def check(self, loc: int) -> bool:
+		return self.locks.get(loc) and self.locks[loc] > 0
+	
+	# releases the lock on a register
+	def release(self, loc: int) -> None:
+		if self.locks[loc] > 0:
+			self.locks[loc] -= 1
+
+class Registry(Locker):
 	# initialises register set which is used by the simulator
 	def __init__(self):
+		super().__init__()
 		self.PC = 0b0000_0000
 		self.FLAGS = 0b0000_0000_0000_0000
 		self.regs = [0b0000_0000_0000_0000] * 7  # general purpose registers
-		self.locks = {X: False for X in range(8)}  # locked registers cannot be written into
-	
-	# holds a lock on a register
-	def hold(self, reg: int) -> None:
-		self.locks[reg] = True
-	
-	# checks if a register is locked
-	def check(self, reg: int) -> bool:
-		return self.locks[reg]
-	
-	# releases the lock on a register
-	def release(self, reg: int) -> None:
-		self.locks[reg] = False
+		self.locks = {X: 0 for X in range(8)}  # locked registers cannot be written into
 	
 	# writes a value to a certain register
 	def write_reg(self, loc: int, val: int) -> None:
@@ -24,7 +33,7 @@ class Registry:
 	
 	# reads a value from a certain register
 	def read_reg(self, loc: int) -> int:
-		if self.locks[loc]:
+		if self.check(loc):
 			return -1
 		if loc == 7:
 			return self.FLAGS
@@ -32,7 +41,6 @@ class Registry:
 	
 	# sets the flags register with the given flags
 	def set_flags(self, flags: str) -> None:
-		self.release(7)
 		self.FLAGS = flags
 	
 	# gets program counter in a printble format
@@ -88,9 +96,10 @@ class Tracer:
 		return {'x': {'read': traces_read_x, 'write': traces_write_x},
 		        'y': {'read': traces_read_y, 'write': traces_write_y}}
 
-class Memory:
+class Memory(Locker):
 	# initialises memory of the given size
 	def __init__(self, size: int):
+		super().__init__()
 		self.mem = [0b0000_0000_0000_0000] * size
 		
 	# writes a value at a given memory location
@@ -100,6 +109,8 @@ class Memory:
 		
 	# reads the value at a given memory location
 	def read_loc(self, loc: int) -> int:
+		if self.check(loc):
+			return -1
 		Tracer.log_read(loc)
 		return self.mem[loc]
 		

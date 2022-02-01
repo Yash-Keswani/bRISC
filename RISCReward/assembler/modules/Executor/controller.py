@@ -65,7 +65,7 @@ class CU:
 	
 	# gets the values used as destination operand/s by a line of code
 	@staticmethod
-	def fetch_destinations(opc: int, cat: str, line: str, reg: Registry) -> list:
+	def fetch_destinations(opc: int, cat: str, line: str) -> list:
 		match cat:
 			case 'A':
 				dests = [
@@ -76,10 +76,13 @@ class CU:
 					int(line[5:8], base=2)
 				]
 			case 'C':
-				dests = [
-					int(line[10:13], base=2),
-					int(line[13:], base=2)
-				]
+				if opc == 0b00111:
+					dests = [0, 1]
+				else:
+					dests = [
+						int(line[10:13], base=2),
+						int(line[13:], base=2)
+					]
 			case 'D':
 				dests = [
 					int(line[5:8], base=2),
@@ -87,11 +90,6 @@ class CU:
 				]
 			case 'E' | 'F' | _:
 				dests = []
-		
-		for dest in dests:
-			reg.hold(dest)
-		if opc == 0b01110 or cat == 'A':  # overflow is a bitch
-			reg.hold(7)  # FLAGS
 		
 		return dests
 	
@@ -114,8 +112,6 @@ class CU:
 			case 'F':
 				return False
 		
-		for dest in dests:
-			reg.release(dest)
 		return True
 	
 	# stores any relevant results into the memory

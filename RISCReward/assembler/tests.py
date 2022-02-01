@@ -46,8 +46,6 @@ class AsmTest(TestCase):
 		E = Executor()
 		for b, f in zip(self.bins, self.fins):
 			with self.subTest(msg=b):
-				if '09' in b:
-					return
 				with open(self.bin_dir+"/"+b) as fl:
 					byt = fl.read()
 				

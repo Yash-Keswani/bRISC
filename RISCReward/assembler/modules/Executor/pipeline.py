@@ -22,6 +22,9 @@ class LineInfo():
 	opc: int = None
 	cat: str = None
 	
+	def __init__(self):
+		self.dests = []
+	
 	def empty(self) -> bool:
 		return self.line_text is None
 
@@ -47,7 +50,16 @@ class Pipeline:
 		if -1 in line.srcs:  # prevents circular dependency by locking one's one source in an intermediate stage
 			return
 		
-		line.dests = CU.fetch_destinations(line.opc, line.cat, line.line_text, cls.reg)
+		line.dests = CU.fetch_destinations(line.opc, line.cat, line.line_text)
+		
+		for dest in line.dests:
+			if dest <= 7:
+				cls.reg.hold(dest)
+			else:
+				cls.mem.hold(dest)
+		
+		if line.opc == 0b01110 or line.cat == 'A':  # overflow is a bitch
+			cls.reg.hold(7)  # FLAGS
 	
 	@classmethod
 	@returnIfNone
@@ -59,9 +71,19 @@ class Pipeline:
 	@returnIfNone
 	def M(cls, line: LineInfo):
 		CU.store_results_mem(line.dests, line.out, line.opc, line.cat, cls.mem)
+		
+		for dest in line.dests:
+			if dest > 7:
+				cls.mem.release(dest)
 	
 	@classmethod
 	@returnIfNone
 	def W(cls, line: LineInfo):
 		CU.store_results_reg(line.dests, line.out, line.opc, line.cat, cls.reg)
+		
+		for dest in line.dests:
+			if dest <= 7:
+				cls.reg.release(dest)
+			if line.opc == 0b01110 or line.cat == 'A':  # overflow is a bitch
+				cls.reg.release(7)  # FLAGS
 		

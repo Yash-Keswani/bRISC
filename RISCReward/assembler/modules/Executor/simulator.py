@@ -40,6 +40,9 @@ class Executor:
 			Pipeline.F(lineobj[0])
 			Pipeline.D(lineobj[1])
 			
+			if lineobj[0].lno == 35:
+				print("hLAT")
+			
 			STALLING = (-1 in lineobj[1].srcs) if not lineobj[1].empty() else False
 			
 			if not lineobj[0].empty() and not STALLING:
@@ -48,7 +51,18 @@ class Executor:
 			BRANCHING = Pipeline.X(lineobj[2])
 			
 			if BRANCHING:  # Branching happened
+				for loc in set(lineobj[0].dests) | set(lineobj[1].dests):
+					if loc <= 7:
+						cls.reg.release(loc)
+					else:
+						cls.mem.release(loc)
+				
+				for i in lineobj[0:2]:
+					if i.opc == 0b01110 or i.cat == 'A':  # overflow is a bitch
+						cls.reg.release(7)  # FLAGS
+						
 				lineobj[0] = lineobj[1] = LineInfo()
+				STALLING = False
 				
 			Pipeline.M(lineobj[3])
 			Pipeline.W(lineobj[4])
