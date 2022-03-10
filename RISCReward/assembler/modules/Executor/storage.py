@@ -1,7 +1,11 @@
 class Locker:
 	def __init__(self):
 		self.locks = {}
+		self.waiting = {}
 		
+	def STALLING(self) -> bool:
+		return any((self.waiting[x] for x in self.waiting))
+	
 	# holds a lock on a register
 	def hold(self, loc: int) -> None:
 		if self.locks.get(loc):
@@ -11,12 +15,16 @@ class Locker:
 	
 	# checks if a location is locked - if the location isnt present in the lock table, it returns false
 	def check(self, loc: int) -> bool:
-		return self.locks.get(loc) and self.locks[loc] > 0
+		if toret := self.locks.get(loc) and self.locks[loc] > 0:
+			self.waiting[loc] = True
+		return toret
 	
 	# releases the lock on a register
 	def release(self, loc: int) -> None:
 		if self.locks[loc] > 0:
 			self.locks[loc] -= 1
+		if self.locks[loc] == 0:
+			self.waiting[loc] = False
 
 class Registry(Locker):
 	# initialises register set which is used by the simulator
@@ -26,6 +34,7 @@ class Registry(Locker):
 		self.FLAGS = 0b0000_0000_0000_0000
 		self.regs = [0b0000_0000_0000_0000] * 7  # general purpose registers
 		self.locks = {X: 0 for X in range(8)}  # locked registers cannot be written into
+		self.waiting = {X: False for X in range(8)}  # locked registers cannot be written into
 	
 	# writes a value to a certain register
 	def write_reg(self, loc: int, val: int) -> None:

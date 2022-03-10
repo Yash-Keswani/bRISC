@@ -8,13 +8,15 @@ class Executor:
 	mem: Memory
 	reg: Registry
 	size: int
+	time: int = 0
 	
 	@classmethod
 	def load_code(cls, text: str):
 		cls.mem = Memory(256)
 		cls.reg = Registry()
-		Pipeline(cls.mem, cls.reg)
 		cls.size = 0
+		cls.time = 0
+		Pipeline(cls.mem, cls.reg)
 		
 		for i, line in enumerate(text.strip().split("\n")):
 			cls.mem.write_loc(i, int(line, base=2))
@@ -22,7 +24,7 @@ class Executor:
 
 	@classmethod
 	def process(cls, pipelined=False):
-		toret: str = ""
+		toret: str | list[str] = ""
 		
 		if not pipelined:
 			lineobj = [LineInfo()] * 5
@@ -31,16 +33,24 @@ class Executor:
 		
 		STALLING: bool
 		BRANCHING: bool
+		
 		while cls.reg.PC < cls.size or any((not lineobj[x].empty() for x in range(5))) or cls.reg.PC == 0:
 			if cls.reg.PC < cls.size:
 				lineobj[0].line_text = f'{cls.mem.read_loc(cls.reg.PC):016b}'
 			else:
 				lineobj[0].line_text = None
-				
+		
+			Pipeline.usage.append([])
+			cls.time += 1
+			lineobj[0].lno = cls.reg.PC
+			
 			Pipeline.F(lineobj[0])
+			Pipeline.M(lineobj[3])
+			Pipeline.W(lineobj[4])
 			Pipeline.D(lineobj[1])
 			
-			STALLING = (-1 in lineobj[1].srcs) if not lineobj[1].empty() else False
+			# STALLING = (-1 in lineobj[1].srcs) if not lineobj[1].empty() else False
+			STALLING = cls.reg.STALLING() or cls.mem.STALLING()
 			
 			if not lineobj[0].empty() and not STALLING:
 				cls.reg.PC = lineobj[0].lno + 1  # Branching Speculation!
@@ -59,10 +69,9 @@ class Executor:
 						cls.reg.release(7)  # FLAGS
 						
 				lineobj[0] = lineobj[1] = LineInfo()
-				STALLING = False
-				
-			Pipeline.M(lineobj[3])
-			Pipeline.W(lineobj[4])
+			
+			#if all((not cls.reg.check(x) for x in lineobj[1].locks)):
+			#	STALLING = False
 			
 			if not lineobj[4].empty():
 				if os.environ.get("TESTING") == '1':
@@ -78,5 +87,7 @@ class Executor:
 	
 		if os.environ.get("TESTING") == '1':
 			toret += cls.mem.fetch_mem()
+		else:
+			toret = [toret, Pipeline.getUsage()]
 		return toret
 	

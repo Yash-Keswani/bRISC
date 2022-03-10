@@ -7,20 +7,24 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>Assembler</title>
-    <link rel="stylesheet" href="{% static 'assets/bootstrap/css/bootstrap.min.css' %}">
-    <link rel="stylesheet" href="{% static 'assets/css/styles.css' %}">
-    <script type="text/javascript" src="{% static '/assets/jquery/jquery.js' %}">
+    <link rel="stylesheet" href="{% static 'RISCReward/assets/bootstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'RISCReward/assets/css/styles.css' %}">
+    <script type="text/javascript" src="{% static 'RISCReward/assets/jquery/jquery.js' %}">
     </script>
 </head>
 
 <body>
     <div class="hstack d-xl-flex align-items-xl-start" style="height: 500px;">
-        <div class="container-fluid" style="margin-top: 5px; height: 100%">
+        <div class="container-fluid" style="margin-top: 5px; height: 100%; width: 70%">
             <form class="flex-grow-1" style="height: 100%;" action="" id="my_form" method="post">
                 {% csrf_token %}
                 <textarea class="form-control"  style="height: 100%; resize: none" name="my_code"></textarea>
                 <button class="btn btn-primary" type="submit">Process</button>
             </form>
+        </div>
+        <div class="container flex-grow-1" style="height: 100%; width: 180%; margin-top: 5px; font-family: Consolas">
+            <textarea class="form-control" style="height: 100%;padding: 6px 12px; resize: none" disabled id="pipeline">Pipeline Diagram
+            </textarea>
         </div>
         <div class="container flex-grow-1" style="height: 100%; width: 50%; margin-top: 5px;">
             <textarea class="form-control" style="height: 100%;padding: 6px 12px; resize: none" disabled id="byte_code">Code output will appear here
@@ -32,13 +36,14 @@
             </textarea>
         </div>
     </div>
-    <script src="{% static 'assets/bootstrap/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'RISCReward/assets/bootstrap/js/bootstrap.min.js' %}"></script>
     <script type="text/javascript">
         $('#my_form').submit(function(e){
             $.post('parse_code/', $(this).serialize(), function(data){
                 const out = JSON.parse(data);
                 $('#byte_code').html(out["bin"]);
                 $('#code_output').html(out["out"])
+                $('#pipeline').val(out["pipeline"])
             });
             e.preventDefault();
         });
