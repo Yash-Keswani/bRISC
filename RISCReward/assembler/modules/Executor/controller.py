@@ -6,6 +6,12 @@ from pathlib import Path
 def openp(filepath: str) -> IO:
 	return open(Path(__file__).parent.__str__()+filepath)
 	
+def lookup(data: dict[list[dict]], opc: int) -> dict:
+	for inst in data.values():
+		for style in inst:
+			if int(style["opcode"][2:], base=2) == opc:
+				return style
+
 class CU:
 	with openp('/../Assembler/instructions.json') as fl:
 		insts = json.load(fl)
@@ -31,7 +37,7 @@ class CU:
 	
 	# gets the values used as source operand/s by a line of code
 	@classmethod
-	def fetch_sources(cls, cat, line, mem: Memory, reg: Registry) -> list[int]:
+	def fetch_sources(cls, opc: int, cat: str, line: str, mem: Memory, reg: Registry) -> list[int]:
 		"""
 		match cat:
 			case 'A':
@@ -90,11 +96,14 @@ class CU:
 		else:
 			sources = []
 			
+		for i in range(len(sources)):
+			if i not in lookup(cls.insts, opc)["src"]:
+				sources[i] = 0
 		return sources
 	
 	# gets the values used as destination operand/s by a line of code
-	@staticmethod
-	def fetch_destinations(opc: int, cat: str, line: str) -> list:
+	@classmethod
+	def fetch_destinations(cls, opc: int, cat: str, line: str) -> list:
 		"""
 		match cat:
 			case 'A':
@@ -144,7 +153,10 @@ class CU:
 			]
 		else:
 			dests = []
-			
+		
+		for i in range(len(dests)):
+			if i not in lookup(cls.insts, opc)["dest"]:
+				dests[i] = -1
 		return dests
 	
 	# handles output after execution is done. returns whether or not there are lines afterwards.

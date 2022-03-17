@@ -31,12 +31,15 @@ class AsmTest(TestCase):
 	def testExecutor(self):
 		E = Executor()
 		for b, f in zip(self.bins, self.fins):
+			# if '2' in b:
+			#	break
 			with self.subTest(msg=b):
 				with open(self.bin_dir+"/"+b) as fl:
 					byt = fl.read()
 				
 				E.load_code(byt)
 				byt_out = E.process(pipelined=False)
+				byt_out = byt_out["reg_dump"]+byt_out["mem_dump"]
 				with open(self.fin_dir+"/"+f) as fl:
 					fin = fl.read()
 					x = byt_out.strip()
@@ -45,12 +48,15 @@ class AsmTest(TestCase):
 	def testPipelined(self):
 		E = Executor()
 		for b, f in zip(self.bins, self.fins):
+			# if '2' in b:
+			#	break
 			with self.subTest(msg=b):
 				with open(self.bin_dir+"/"+b) as fl:
 					byt = fl.read()
 				
 				E.load_code(byt)
 				byt_out = E.process(pipelined=True)
+				byt_out = byt_out["reg_dump"]+byt_out["mem_dump"]
 				with open(self.fin_dir+"/"+f) as fl:
 					fin = fl.read()
 					self.assertEqual(byt_out.strip(), fin.strip())

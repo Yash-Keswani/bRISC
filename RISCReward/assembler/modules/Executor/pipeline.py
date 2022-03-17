@@ -16,8 +16,6 @@ def returnIfNone(fun):
 
 @dataclass
 class LineInfo():
-	last_index: int = 0
-	
 	lno: int = None
 	line_text: str = None
 	srcs: list[int] = None
@@ -25,11 +23,9 @@ class LineInfo():
 	out: dict[str, int | bool] = None
 	opc: int = None
 	cat: str = None
-	locks: list[int] = None  # locks that this line is waiting to be released
 	
 	def __init__(self):
 		self.dests = []
-		self.locks = []
 	
 	def empty(self) -> bool:
 		return self.line_text is None
@@ -60,7 +56,7 @@ class Pipeline:
 		
 	@classmethod
 	def __D(cls, line: LineInfo):
-		line.srcs = CU.fetch_sources(line.cat, line.line_text, cls.mem, cls.reg)
+		line.srcs = CU.fetch_sources(line.opc, line.cat, line.line_text, cls.mem, cls.reg)
 		
 		if -1 in line.srcs:  # prevents circular dependency by locking one's one source in an intermediate stage
 			return
@@ -68,14 +64,16 @@ class Pipeline:
 		line.dests = CU.fetch_destinations(line.opc, line.cat, line.line_text)
 		
 		for dest in line.dests:
+			if dest < 0:
+				continue
 			if dest <= 7:
 				cls.reg.hold(dest)
 			else:
 				cls.mem.hold(dest)
 		
 		if line.opc == 0b01110 or line.cat == 'A':  # overflow is a bitch
-			cls.reg.hold(7)  # FLAGS
-	
+			cls.reg.hold(7)
+			
 	@classmethod
 	@returnIfNone
 	def X(cls, line: LineInfo) -> bool:
@@ -97,7 +95,8 @@ class Pipeline:
 		CU.store_results_reg(line.dests, line.out, line.opc, line.cat, cls.reg)
 		
 		for dest in line.dests:
-			if dest <= 7:
+			if 0 <= dest <= 7:
 				cls.reg.release(dest)
 			if line.opc == 0b01110 or line.cat == 'A':  # overflow is a bitch
 				cls.reg.release(7)  # FLAGS
+	

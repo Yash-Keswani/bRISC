@@ -15,14 +15,14 @@
 
 <body>
     <div class="hstack d-xl-flex align-items-xl-start" style="height: 500px;">
-        <div class="container-fluid" style="margin-top: 5px; height: 100%; width: 70%">
+        <div class="container-fluid" style="margin-top: 5px; height: 100%; width: 60%">
             <form class="flex-grow-1" style="height: 100%;" action="" id="my_form" method="post">
                 {% csrf_token %}
                 <textarea class="form-control"  style="height: 100%; resize: none" name="my_code"></textarea>
                 <button class="btn btn-primary" type="submit">Process</button>
             </form>
         </div>
-        <div class="container flex-grow-1" style="height: 100%; width: 180%; margin-top: 5px; font-family: Consolas">
+        <div class="container flex-grow-1" style="height: 100%; width: 200%; margin-top: 5px; font-family: Consolas">
             <textarea class="form-control" style="height: 100%;padding: 6px 12px; resize: none" disabled id="pipeline">Pipeline Diagram
             </textarea>
         </div>

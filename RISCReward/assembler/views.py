@@ -16,11 +16,15 @@ def process(request: HttpRequest) -> HttpResponse:
 	if (bin_cod[0][0] != -1):
 		Executor.load_code(bin_cod[1])
 		Bbin = "".join([f"{x[0]}) {x[1]}\n" for x in zip(bin_cod[0], bin_cod[1].split("\n"))])
-		out, pl = Executor.process(pipelined=True)
+		output = Executor.process(pipelined=True)
+		out = output["state_dump"]
+		pl = output["pipeline"]
+		mem = output["mem_dump"]
+		
 		pipeline = [[" " for x in range(len(pl))] for y in range(len(bin_cod[0]))]
 		phases = ["F", "M", "W", "D", "X"]
 		
-		tbl = texttable.Texttable()
+		tbl = texttable.Texttable(max_width=500)
 		for cycle_num, cycle in enumerate(pl):
 			for i in range(5):
 				if cycle[i] != -1:
@@ -32,12 +36,14 @@ def process(request: HttpRequest) -> HttpResponse:
 		Bbin = bin_cod[1]
 		out = ""
 		pipeline = ""
+		mem = ""
 	return HttpResponse(
 		content=json.dumps(
 			{
 				"bin": Bbin,
 				"out": out,
-				"pipeline": str(pipeline)
+				"pipeline": str(pipeline),
+				"memory": mem
 			}
 		)
 	)
