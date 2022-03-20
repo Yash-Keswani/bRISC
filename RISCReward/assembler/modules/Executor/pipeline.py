@@ -52,10 +52,6 @@ class Pipeline:
 	@classmethod
 	@returnIfNone
 	def D(cls, line: LineInfo):
-		cls.__D(line)
-		
-	@classmethod
-	def __D(cls, line: LineInfo):
 		line.srcs = CU.fetch_sources(line.opc, line.cat, line.line_text, cls.mem, cls.reg)
 		
 		if -1 in line.srcs:  # prevents circular dependency by locking one's one source in an intermediate stage

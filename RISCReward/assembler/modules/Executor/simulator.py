@@ -100,8 +100,13 @@ class Executor:
 					lineobj.insert(0, LineInfo())  # put new line in F to read
 				else:
 					lineobj.insert(2, LineInfo())  # put stall bubble in X
+				
+				if lineobj[4].lno == 5:
+					break
 		
 			toret["mem_dump"] = cls.mem.fetch_mem()
 			toret["pipeline"] = Pipeline.getUsage()
+			toret["state"] = lineobj
+			toret["regs"] = cls.reg.fetch_reg()
 			return toret
 	
