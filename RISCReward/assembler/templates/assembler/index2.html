@@ -144,7 +144,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pivottable/2.23.0/pivot.min.js"></script>
 <script type="text/javascript">
     editor_IDs = ["editor_in", "binary", "mem", "reg", "console"]
-
+    ace.config.set("basePath", "{% get_static_prefix %}RISCReward/assets/ace/src-min")
     editor_IDs.forEach(ed => {
         const editor = ace.edit(ed);
         editor.setTheme("ace/theme/ambiance");
