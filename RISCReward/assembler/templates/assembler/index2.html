@@ -16,15 +16,15 @@
             resize: none;
         }
         .editor{
-            font-size: 1.5vw;
+            font-size: 1.4vw;
         }
         .debug{
             font-size: 2vw
         }
-        .ace_gutter {
+        .ace_gutter-layer {
             color: #e7f1ff !important;
         }
-        .editor{
+        .editor {
             line-height: 2.2vw;
         }
     </style>
@@ -34,7 +34,7 @@
 <div class="hstack flex-grow-1"
      style="width: 100%;padding: 1%; height: 100%;">
     <div class="vstack" style="width: 25%;height: 100%;">
-        <div class="editor" style="width: 100%;height: 92%;" id="editor_in">Code goes here</div>
+        <div class="editor" style="width: 100%;height: 92%;" id="editor_in"></div>
         <div class="hstack d-xxl-flex" style="justify-content: space-around; margin-top: 2%; height: 8%">
             <div class="btn-group" role="group" style="width: 40%; height: 100%">
                 <button class="btn btn-dark debug" type="button" onclick="submit_code_run()"
@@ -60,9 +60,9 @@
     </div>
     <div class="vstack" style="height: 100%;width: 75%;padding-left: 1%;">
         <div class="hstack" style="height: 55%;width: 100%;">
-            <div style="width: 28%;height: 100%" disabled="" class="editor" id="mem">Memory Usage</div>
-            <div style="width: 28%;height: 100%;margin-left: 1%" disabled="" class="editor" id="reg">Register Values</div>
-            <div style="width: 28%;height: 100%;margin-left: 1%" disabled="" class="editor" id="binary">Binary Output</div>
+            <div style="width: 28%;height: 100%" disabled="" class="editor" id="mem"></div>
+            <div style="width: 28%;height: 100%;margin-left: 1%" disabled="" class="editor" id="reg"></div>
+            <div style="width: 28%;height: 100%;margin-left: 1%" disabled="" class="editor" id="binary"></div>
             <div class="vstack" style="margin-left: 1%; width: 10%">
                 <div class="btn-group-vertical" role="group" style="height: 100%;">
                     <button class="btn btn-dark" type="button"
@@ -89,53 +89,17 @@
                 <table class="table table-striped table-dark" id="state">
                     <thead>
                     <tr>
-                        <th>Column 1</th>
-                        <th>Column 1</th>
-                        <th>Column 2</th>
-                        <th>Column 3</th>
-                        <th>Column 2</th>
+                        <th>Phase</th>
+                        <th>Line No.</th>
+                        <th>Sources</th>
+                        <th>Destinations</th>
+                        <th>Value</th>
+                        <th>Flags</th>
                     </tr>
                     </thead>
-                    <tbody>
-                    <tr>
-                        <td>Cell 1</td>
-                        <td>Cell 1</td>
-                        <td>Cell 2</td>
-                        <td>Cell 3</td>
-                        <td>Cell 2</td>
-                    </tr>
-                    <tr>
-                        <td>Cell 1</td>
-                        <td>Cell 3</td>
-                        <td>Cell 2</td>
-                        <td>Cell 3</td>
-                        <td>Cell 4</td>
-                    </tr>
-                    <tr>
-                        <td>Cell 1</td>
-                        <td>Cell 1</td>
-                        <td>Cell 2</td>
-                        <td>Cell 3</td>
-                        <td>Cell 2</td>
-                    </tr>
-                    <tr>
-                        <td>Cell 1</td>
-                        <td>Cell 1</td>
-                        <td>Cell 2</td>
-                        <td>Cell 3</td>
-                        <td>Cell 2</td>
-                    </tr>
-                    <tr>
-                        <td>Cell 1</td>
-                        <td>Cell 1</td>
-                        <td>Cell 2</td>
-                        <td>Cell 3</td>
-                        <td>Cell 2</td>
-                    </tr>
-                    </tbody>
                 </table>
             </div>
-            <div class="editor" style="width: 42%;height: 100%;margin-left: 1%;" id="console">Console</div>
+            <div class="editor" style="width: 42%;height: 100%;margin-left: 1%;" id="console"></div>
         </div>
     </div>
 </div>
@@ -149,6 +113,7 @@
         const editor = ace.edit(ed);
         editor.setTheme("ace/theme/ambiance");
         editor.session.setMode("ace/mode/plain_text");
+        editor.session.setUseWrapMode(true)
     })
 
     const editor_in = ace.edit("editor_in")
@@ -157,15 +122,20 @@
     const regs = ace.edit("reg")
     const consol = ace.edit("console")
 
-    bin.renderer.setShowGutter(false)
-    mem.renderer.setShowGutter(false)
-    regs.renderer.setShowGutter(false)
-    consol.renderer.setShowGutter(false)
+    editor_in.setOption("placeholder", "Enter Code Here")
+    bin.setOption("placeholder", "Binary Output")
+    mem.setOption("placeholder", "Memory Values")
+    regs.setOption("placeholder", "Register Values")
+    consol.setOption("placeholder", "Console")
 
-    bin.setReadOnly(true)
-    mem.setReadOnly(true)
-    regs.setReadOnly(true)
-    consol.setReadOnly(true)
+    editor_in.setOption("firstLineNumber", 0)
+    for (const editor of [bin, mem, regs, consol]){
+        editor.setReadOnly(true)
+        editor.session.removeMarker()
+        editor.setOption("highlightActiveLine", false)
+        editor.renderer.setPadding(10)
+    }
+    consol.renderer.setShowGutter(false)
 
     async function query (url='', data={}){
         const response = await fetch(url, {
@@ -202,25 +172,54 @@
         $('#' + tableId).html(rows);
     }
 
+    var src_map
     function submit_code_run(){
         query('parse_code/', {'my_code': editor_in.getValue()})
         .then(out=>{
-            bin.setValue(out["bin"]);
-            consol.setValue(out["out"]);
-            regs.setValue(out["regs"])
-            mem.setValue(out["memory"])
-            bin.clearSelection()
-            consol.clearSelection()
-            regs.clearSelection()
-            mem.clearSelection()
+            // bin.setValue(out["bin"], -1)
+            consol.setValue(out["out"], -1)
+            regs.setValue(out["regs"], -1)
+            mem.setValue(out["memory"], -1)
 
-            console.log(out["state"]);
-            console.log(JSON.parse(out["state"]));
+            console.log(out["src_map"])
+            src_map = JSON.parse(out["src_map"])
+            bin.session.gutter_numbering = src_map
+            bin.setValue(Object.values(src_map).join("\n"), -1)
+
+            // console.log(out["state"]);
+            // console.log(JSON.parse(out["state"]));
             loadTable("state", ["lno", "opc","srcs"], JSON.parse(out["state"]))
         })
     }
 
+    bin.session.gutterRenderer = {
+        getWidth: function(session, lastLineNumber, config) {
+            return lastLineNumber.toString().length * config.characterWidth;
+        },
+        getText: function(session, row) {
+            return Object.keys(src_map)[row];
+        }
+    }
+    register_values = ["R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7",
+        "RSL", "RSS", "RSC", "RSF", "RSN", "RSR", "RSA"]
+    regs.session.gutterRenderer =  {
+        getWidth: function(session, lastLineNumber, config) {
+            return 2 * config.characterWidth;
+        },
+        getText: function(session, row) {
+            return register_values[row];
+        }
+    };
+
+    mem.session.gutterRenderer =  {
+        getWidth: function(session, lastLineNumber, config) {
+            return 2 * config.characterWidth;
+        },
+        getText: function(session, row) {
+               return row.toString(16).padStart(2,'0').toUpperCase();
+        }
+    };
+
 </script>
 </body>
-
 </html>

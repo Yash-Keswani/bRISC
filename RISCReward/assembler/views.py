@@ -19,7 +19,10 @@ def process(request: HttpRequest) -> HttpResponse:
 	bin_cod = parse(data["my_code"])
 	if (bin_cod[0][0] != -1):
 		Executor.load_code(bin_cod[1])
-		Bbin = "".join([f"{x[0]}) {x[1]}\n" for x in zip(bin_cod[0], bin_cod[1].split("\n"))])
+		# Bbin = "".join([f"{x[0]}) {x[1]}\n" for x in zip(bin_cod[0], bin_cod[1].split("\n"))])
+		# srcmap = bin_cod[0]
+		srcmap = {x[0]: x[1] for x in zip(bin_cod[0], bin_cod[1].split("\n"))}
+		# bin_out = bin_cod[1]
 		output = Executor.process(pipelined=True)
 		out = output["state_dump"]
 		pl = output["pipeline"]
@@ -40,15 +43,13 @@ def process(request: HttpRequest) -> HttpResponse:
 		
 	else:
 		Bbin = bin_cod[1]
-		out = ""
-		pipeline = ""
-		mem = ""
-		state = ""
-		reg = ""
+		out = bin_out = srcmap = pipeline = mem = state = regs = ""
+		
 	return HttpResponse(
 		content=json.dumps(
 			{
-				"bin": Bbin,
+				# "bin": Bbin,
+				"src_map": json.dumps(srcmap),
 				"out": out,
 				"pipeline": str(pipeline),
 				"memory": mem,
