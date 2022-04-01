@@ -1,0 +1,43 @@
+syntax="proto2";
+
+message locker{
+  map<int32, int32> locks = 1;
+  map<int32, bool> waiting = 2;
+}
+
+message line_info{
+  required int32 lno = 1;
+  repeated int32 srcs = 2;
+  repeated int32 dests = 3;
+  map<string, int32> out = 4;
+  required int32 opc = 5;
+  required string cat = 6;
+  required string line_text = 7;
+}
+
+message running_state{
+  required bool STALLING = 1;
+  required bool BRANCHING = 2;
+  repeated line_info lines = 3;
+}
+
+message executor{
+  required memory mem = 1;
+  required registry reg = 2;
+  required int32 size = 3;
+  required int32 time = 4;
+  required running_state state = 5;
+}
+
+message memory {
+  required locker all_locks = 1;
+  repeated int32 mem_value = 2;
+}
+
+message registry{
+  required locker all_locks = 1;
+  required int32 PC = 2;
+  required int32 FLAGS = 3;
+  repeated int32 regs = 4;
+  map<string, int32> sregs = 5;
+}

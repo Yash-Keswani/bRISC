@@ -51,7 +51,7 @@ def process(request: HttpRequest) -> HttpResponse:
 				# "bin": Bbin,
 				"src_map": json.dumps(srcmap),
 				"out": out,
-				"pipeline": str(pipeline),
+				"pipeline": str(pipeline),  # json dumps escapes characters which i dont want
 				"memory": mem,
 				"state": state,
 				"regs": regs

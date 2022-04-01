@@ -39,7 +39,7 @@
     <script src="{% static 'RISCReward/assets/bootstrap/js/bootstrap.min.js' %}"></script>
     <script type="text/javascript">
         $('#my_form').submit(function(e){
-            $.post('parse_code/', $(this).serialize(), function(data){
+            $.post('parse_code', $(this).serialize(), function(data){
                 const out = JSON.parse(data);
                 $('#byte_code').html(out["bin"]);
                 $('#code_output').html(out["out"])

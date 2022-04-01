@@ -27,6 +27,9 @@
         .editor {
             line-height: 2.2vw;
         }
+        .hidden_element{
+            display: none;
+        }
     </style>
 </head>
 
@@ -59,29 +62,33 @@
         </div>
     </div>
     <div class="vstack" style="height: 100%;width: 75%;padding-left: 1%;">
-        <div class="hstack" style="height: 55%;width: 100%;">
-            <div style="width: 28%;height: 100%" disabled="" class="editor" id="mem"></div>
-            <div style="width: 28%;height: 100%;margin-left: 1%" disabled="" class="editor" id="reg"></div>
-            <div style="width: 28%;height: 100%;margin-left: 1%" disabled="" class="editor" id="binary"></div>
-            <div class="vstack" style="margin-left: 1%; width: 10%">
-                <div class="btn-group-vertical" role="group" style="height: 100%;">
-                    <button class="btn btn-dark" type="button"
-                            style="height: 20%;min-height: 20%;max-height: 20%;margin: 5% 0;font-size: 1.2vw;font-family: monospace;">
-                        Help
-                    </button>
-                    <button class="btn btn-dark" type="button"
-                            style="height: 20%;min-height: 20%;max-height: 20%;margin: 5% 0;font-size: 1.2vw;font-family: monospace;">
-                        ISA Specs
-                    </button>
-                    <button class="btn btn-dark" type="button"
-                            style="height: 20%;min-height: 20%;max-height: 20%;margin: 5% 0;font-size: 1.2vw;font-family: monospace;">
-                        Pipeline Diagram
-                    </button>
-                    <button class="btn btn-dark" type="button"
-                            style="height: 20%;min-height: 20%;max-height: 20%;margin: 5% 0;font-size: 1.2vw;font-family: monospace;">
-                        Access Traces
-                    </button>
-                </div>
+        <div class = "hstack" style="height:55%; width: 100%">
+            <div class="hstack" id="debug" style="width: 92%; height:100%">
+                <div style="width: 33%;height: 100%" disabled="" class="editor" id="mem"></div>
+                <div style="width: 33%;height: 100%;margin-left: 1%" disabled="" class="editor" id="reg"></div>
+                <div style="width: 33%;height: 100%;margin-left: 1%" disabled="" class="editor" id="binary"></div>
+            </div>
+            <div class="hidden_element" style="width: 92%; height: 100%" id="pipeline">
+                <textarea style="height: 100%; width: 100%; resize:none; font-family: Consolas,sans-serif" id="pipeline_diagram" disabled></textarea>
+            </div>
+            <div class="btn-group-vertical" role="group" style="height: 100%;margin-left:1%;">
+                <button class="btn btn-dark" type="button"
+                        style="height: 20%;min-height: 20%;max-height: 20%;margin: 5% 0;font-size: 1.2vw;font-family: monospace;">
+                    Help
+                </button>
+                <button class="btn btn-dark" type="button"
+                        style="height: 20%;min-height: 20%;max-height: 20%;margin: 5% 0;font-size: 1.2vw;font-family: monospace;">
+                    ISA Specs
+                </button>
+                <button class="btn btn-dark" type="button"
+                        style="height: 20%;min-height: 20%;max-height: 20%;margin: 5% 0;font-size: 1.2vw;font-family: monospace;"
+                        onclick="flip_views('debug', 'pipeline')">
+                    Debug
+                </button>
+                <button class="btn btn-dark" type="button"
+                        style="height: 20%;min-height: 20%;max-height: 20%;margin: 5% 0;font-size: 1.2vw;font-family: monospace;">
+                    Access Traces
+                </button>
             </div>
         </div>
         <div class="hstack" style="margin-top: 1%;width: 100%;height: 45%;">
@@ -107,6 +114,11 @@
 <script src="{% static 'RISCReward/assets/bootstrap/js/bootstrap.min.js' %}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pivottable/2.23.0/pivot.min.js"></script>
 <script type="text/javascript">
+    function flip_views(view1, view2){
+        $('#'+view1).toggleClass('hidden_element')
+        $('#'+view2).toggleClass('hidden_element')
+    }
+
     editor_IDs = ["editor_in", "binary", "mem", "reg", "console"]
     ace.config.set("basePath", "{% get_static_prefix %}RISCReward/assets/ace/src-min")
     editor_IDs.forEach(ed => {
@@ -158,13 +170,17 @@
 
     phases = ["F","D","X","M","W"]
     function loadTable(tableId, fields, data) {
-        let rows = '<thead><tr><th scope="col">phase</th><th scope="col">Line No.</th>' +
-            '<th scope="col">Opcode</th>' +
-            '<th scope="col">Sources</th></tr></thead>';
+        let rows = '<thead><th>Phase</th><th>Line No.</th><th>Sources</th><th>Destinations</th><th>Value</th><th>Flags</th></tr></thead>';
+
         $.each(data, function(index, item) {
             let row = '<tr>';
             row += '<th scope="row">'+phases[index]+''+'</th>'
             $.each(fields, function(index, field) {
+                if (field.includes("_")){
+                    // console.log(field)
+                    // console.log(item)
+                    field = item[field.split("_")[0]][field.split("_")[1]]
+                }
                 row += '<td>' + wrap_null(item[field+'']) + '</td>';
             });
             rows += row + '</tr>';
@@ -174,51 +190,51 @@
 
     var src_map
     function submit_code_run(){
-        query('parse_code/', {'my_code': editor_in.getValue()})
+        bin.session.gutterRenderer = {
+            getWidth: function(session, lastLineNumber, config) {
+                return lastLineNumber.toString().length * config.characterWidth;
+            },
+            getText: function(session, row) {
+                return Object.keys(src_map)[row];
+            }
+        }
+        const register_values = ["R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7",
+            "RSL", "RSS", "RSC", "RSF", "RSN", "RSR", "RSA"]
+        regs.session.gutterRenderer =  {
+            getWidth: function(session, lastLineNumber, config) {
+                return 2 * config.characterWidth;
+            },
+            getText: function(session, row) {
+                return register_values[row];
+            }
+        };
+
+        mem.session.gutterRenderer =  {
+            getWidth: function(session, lastLineNumber, config) {
+                return 2 * config.characterWidth;
+            },
+            getText: function(session, row) {
+                return row.toString(16).padStart(2,'0').toUpperCase();
+            }
+        };
+        query('parse_code', {'my_code': editor_in.getValue()})
         .then(out=>{
             // bin.setValue(out["bin"], -1)
             consol.setValue(out["out"], -1)
             regs.setValue(out["regs"], -1)
             mem.setValue(out["memory"], -1)
+            $('#pipeline_diagram').html(out["pipeline"])
 
-            console.log(out["src_map"])
             src_map = JSON.parse(out["src_map"])
             bin.session.gutter_numbering = src_map
             bin.setValue(Object.values(src_map).join("\n"), -1)
 
             // console.log(out["state"]);
             // console.log(JSON.parse(out["state"]));
-            loadTable("state", ["lno", "opc","srcs"], JSON.parse(out["state"]))
+            loadTable("state", ["lno", "srcs", "dests", "out_main", "out_flags"], JSON.parse(out["state"]))
         })
     }
 
-    bin.session.gutterRenderer = {
-        getWidth: function(session, lastLineNumber, config) {
-            return lastLineNumber.toString().length * config.characterWidth;
-        },
-        getText: function(session, row) {
-            return Object.keys(src_map)[row];
-        }
-    }
-    register_values = ["R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7",
-        "RSL", "RSS", "RSC", "RSF", "RSN", "RSR", "RSA"]
-    regs.session.gutterRenderer =  {
-        getWidth: function(session, lastLineNumber, config) {
-            return 2 * config.characterWidth;
-        },
-        getText: function(session, row) {
-            return register_values[row];
-        }
-    };
-
-    mem.session.gutterRenderer =  {
-        getWidth: function(session, lastLineNumber, config) {
-            return 2 * config.characterWidth;
-        },
-        getText: function(session, row) {
-               return row.toString(16).padStart(2,'0').toUpperCase();
-        }
-    };
 
 </script>
 </body>

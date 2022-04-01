@@ -1,12 +1,27 @@
 from .pipeline import Pipeline, LineInfo
 from .storage import Registry, Memory
+from ..Packaging import template_pb2
+import google.protobuf.text_format
+import json
 
 class Executor:
 	# initialise memory and registry
 	mem: Memory
 	reg: Registry
-	size: int
+	size: int = 0
 	time: int = 0
+	
+	@classmethod
+	def serialise(cls, state: template_pb2.running_state):
+		todump = template_pb2.executor()
+		todump.size = cls.size
+		todump.time = cls.time
+		todump.mem.CopyFrom(cls.mem.__serialise__())
+		todump.reg.CopyFrom(cls.reg.__serialise__())
+		todump.state.CopyFrom(state)
+		with open("state_dump.txt", "w+") as fl:
+			fl.write(google.protobuf.text_format.MessageToString(todump))
+		# print(dump_dict)
 	
 	@classmethod
 	def load_code(cls, text: str):
@@ -21,13 +36,25 @@ class Executor:
 			cls.size += 1
 
 	@classmethod
-	def process(cls, pipelined=False):
+	def restore_state(cls, reg, mem, code, time, size):
+		cls.mem = mem
+		cls.reg = reg
+		cls.code = code
+		cls.time = time
+		cls.size = size
+
+	@classmethod
+	def process(cls, pipelined=False, action: int = 0):
 		toret = {
 			"reg_dump": "",    # info in all registers as an instruction leaves the processor
 			"mem_dump": "",    # info in memory at end of execution
 			"state_dump": "",  # info of each line as it leaves the processor
 			"pipeline": "",    # lines in the pipeline in each clock cycle
 		}
+		
+		lineobj = [LineInfo() for _ in range(5)]
+		STALLING: bool = False
+		BRANCHING: bool = False
 		
 		if not pipelined:
 			while cls.reg.PC < cls.size:
@@ -51,15 +78,11 @@ class Executor:
 			return toret
 		
 		else:
-			lineobj = [LineInfo() for _ in range(5)]
-			STALLING: bool
-			BRANCHING: bool
-			
 			while cls.reg.PC < cls.size or any((not lineobj[x].empty() for x in range(5))) or cls.reg.PC == 0:
 				if cls.reg.PC < cls.size:  # there are lines in the memory to read
 					lineobj[0].line_text = f'{cls.mem.read_loc(cls.reg.PC):016b}'
 				else:  # there are no lines to read
-					lineobj[0].line_text = None
+					lineobj[0].line_text = ""
 			
 				Pipeline.usage.append([])
 				cls.time += 1
@@ -74,7 +97,8 @@ class Executor:
 				if not lineobj[0].empty() and not STALLING:
 					cls.reg.PC = lineobj[0].lno + 1  # Branching Speculation!
 					
-				BRANCHING = Pipeline.X(lineobj[2])
+				Pipeline.X(lineobj[2])
+				BRANCHING = Pipeline.set_next_get_branching(lineobj[2])
 				
 				if BRANCHING:  # Free all locks held by purged lines
 					for loc in set(lineobj[0].dests) | set(lineobj[1].dests):
@@ -101,9 +125,16 @@ class Executor:
 				else:
 					lineobj.insert(2, LineInfo())  # put stall bubble in X
 				
-				if lineobj[4].lno == 5:
+				if action == 1:
 					break
-		
+			
+			state = template_pb2.running_state()
+			state.STALLING = STALLING
+			state.BRANCHING = BRANCHING
+			for x in lineobj:
+				state.lines.add().CopyFrom(x.__serialise__())
+			
+			cls.serialise(state)
 			toret["mem_dump"] = cls.mem.fetch_mem()
 			toret["pipeline"] = Pipeline.getUsage()
 			toret["state"] = lineobj

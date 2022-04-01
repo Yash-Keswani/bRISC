@@ -3,6 +3,11 @@ from dataclasses import dataclass
 from .controller import CU
 from .logic import LU
 from .storage import Registry, Memory
+from ..Packaging import template_pb2
+
+def copy_dict(dict1: dict[any], dict2: dict[any]):
+	for key, value in dict2.items():
+		dict1[key] = value
 
 def returnIfNone(fun):
 	def wrap(cls, line, **kwargs):
@@ -16,19 +21,32 @@ def returnIfNone(fun):
 
 @dataclass
 class LineInfo():
-	lno: int = None
-	line_text: str = None
+	lno: int = -1
+	line_text: str = ""
 	srcs: list[int] = None
 	dests: list[int] = None
-	out: dict[str, int | bool] = None
-	opc: int = None
-	cat: str = None
+	out: dict[str, any] = None
+	opc: int = -1
+	cat: str = ""
 	
 	def __init__(self):
+		self.srcs = []
 		self.dests = []
+		self.out = {"main": -1, "alter": -1, "branch": -1, "flags": -1}
+	
+	def __serialise__(self)->template_pb2.line_info:
+		toret = template_pb2.line_info()
+		toret.lno = self.lno
+		toret.line_text = self.line_text
+		toret.srcs.extend(self.srcs)
+		toret.dests.extend(self.dests)
+		copy_dict(toret.out, self.out)
+		toret.opc = self.opc
+		toret.cat = self.cat
+		return toret
 	
 	def empty(self) -> bool:
-		return self.line_text is None
+		return self.line_text == ""
 
 class Pipeline:
 	mem: Memory
@@ -43,6 +61,10 @@ class Pipeline:
 	@classmethod
 	def getUsage(cls):
 		return cls.usage
+	
+	@classmethod
+	def setUsage(cls, usage):
+		cls.usage = usage
 	
 	@classmethod
 	@returnIfNone
@@ -72,8 +94,13 @@ class Pipeline:
 			
 	@classmethod
 	@returnIfNone
-	def X(cls, line: LineInfo) -> bool:
+	def X(cls, line: LineInfo) -> None:
 		line.out = LU.call(line.opc, line.srcs)
+	
+	@classmethod
+	def set_next_get_branching(cls, line: LineInfo):
+		if line.empty():
+			return False
 		return CU.next_instruction(line.out, cls.reg)
 	
 	@classmethod
