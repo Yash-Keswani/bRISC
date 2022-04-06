@@ -45,6 +45,15 @@ class LineInfo():
 		toret.cat = self.cat
 		return toret
 	
+	def __deserialise__(self, data: template_pb2.line_info):
+		self.lno = data.lno
+		self.line_text = data.line_text
+		self.srcs = list(data.srcs)
+		self.dests = list(data.dests)
+		self.out = dict(data.out)
+		self.opc = data.opc
+		self.cat = data.cat
+	
 	def empty(self) -> bool:
 		return self.line_text == ""
 

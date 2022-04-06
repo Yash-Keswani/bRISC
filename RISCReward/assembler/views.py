@@ -23,10 +23,11 @@ def process(request: HttpRequest) -> HttpResponse:
 		# srcmap = bin_cod[0]
 		srcmap = {x[0]: x[1] for x in zip(bin_cod[0], bin_cod[1].split("\n"))}
 		# bin_out = bin_cod[1]
-		output = Executor.process(pipelined=True)
+		output = Executor.process(pipelined=True, token=data.get("session_token"))
 		out = output["state_dump"]
 		pl = output["pipeline"]
 		mem = output["mem_dump"]
+		token = output["token"]
 		regs = "\n".join(output["regs"].split())
 		state = json.dumps([x.__dict__ for x in output["state"]])
 		
@@ -43,7 +44,7 @@ def process(request: HttpRequest) -> HttpResponse:
 		
 	else:
 		Bbin = bin_cod[1]
-		out = bin_out = srcmap = pipeline = mem = state = regs = ""
+		out = bin_out = srcmap = pipeline = mem = state = regs = token = ""
 		
 	return HttpResponse(
 		content=json.dumps(
@@ -54,7 +55,8 @@ def process(request: HttpRequest) -> HttpResponse:
 				"pipeline": str(pipeline),  # json dumps escapes characters which i dont want
 				"memory": mem,
 				"state": state,
-				"regs": regs
+				"regs": regs,
+				"token": token
 			}
 		)
 	)

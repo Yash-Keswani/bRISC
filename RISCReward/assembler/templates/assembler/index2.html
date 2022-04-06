@@ -153,7 +153,7 @@
         const response = await fetch(url, {
             method: 'POST',
             headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
+                'X-CSRFToken': '{{ csrf_token }}',
             },
             body: JSON.stringify(data)
         });
@@ -217,13 +217,19 @@
                 return row.toString(16).padStart(2,'0').toUpperCase();
             }
         };
-        query('parse_code', {'my_code': editor_in.getValue()})
+        query('parse_code',
+            {
+                'my_code': editor_in.getValue(),
+                'session_token': window.sessionStorage.getItem("session_token")
+            }
+        )
         .then(out=>{
             // bin.setValue(out["bin"], -1)
             consol.setValue(out["out"], -1)
             regs.setValue(out["regs"], -1)
             mem.setValue(out["memory"], -1)
             $('#pipeline_diagram').html(out["pipeline"])
+            window.sessionStorage.setItem("session_token", out["token"])
 
             src_map = JSON.parse(out["src_map"])
             bin.session.gutter_numbering = src_map

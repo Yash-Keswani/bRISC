@@ -68,6 +68,14 @@ class Registry(Locker):
 		toret.all_locks.CopyFrom(super().__serialise__())
 		return toret
 	
+	def __deserialise__(self, data: template_pb2.registry):
+		self.PC = data.PC
+		self.FLAGS = data.FLAGS
+		self.regs = list(data.regs)
+		self.sregs = data.sregs
+		self.locks = data.all_locks.locks
+		self.waiting = data.all_locks.waiting
+		
 	# writes a value to a certain register
 	def write_reg(self, loc: int, val: int) -> None:
 		self.regs[loc] = val
@@ -103,11 +111,15 @@ class Memory(Locker):
 		super().__init__()
 		self.mem = [0b0000_0000_0000_0000] * size
 		
-	def __serialise__(self):
+	def __serialise__(self) -> template_pb2.memory:
 		toret = template_pb2.memory()
 		toret.all_locks.CopyFrom(super().__serialise__())
 		toret.mem_value.extend(self.mem)
 		return toret
+	
+	def __deserialise__(self, data: template_pb2.memory) -> None:
+		self.locks = data.all_locks.locks
+		self.mem = data.mem_value
 		
 	# writes a value at a given memory location
 	def write_loc(self, loc: int, val: int) -> None:
