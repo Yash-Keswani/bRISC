@@ -1,20 +1,20 @@
 import os
 
 from .errors import Logger, check_cat, check_variant, Error
-from .reader import find_cat, find_variant, encode
 from .memory import Memory
+from .reader import find_cat, find_variant, encode
 
 def parse(text: str) -> tuple[list[int], str] | str:
 	err = Logger()
 	commands: list[str] = []
 	fl: list[str] = text.split('\n')
-
+	
 	# only include instructions in line count
 	ins_cnt = len([x for x in fl if x.strip() != '' and not x.strip().startswith('var')])
 	line_cnt = len(fl)
-
+	
 	mem = Memory(ins_cnt)
-
+	
 	# FIRST PASS - SETS VARIABLES
 	insts = 0
 	for PC, line in enumerate(fl):
@@ -23,7 +23,7 @@ def parse(text: str) -> tuple[list[int], str] | str:
 		variant = find_variant(line)
 		error = check_variant(variant, line, PC, False)
 		
-		if error[0] or variant =='blank':
+		if error[0] or variant == 'blank':
 			continue
 		
 		elif variant == 'label':  # will always be followed by instruction
@@ -35,13 +35,13 @@ def parse(text: str) -> tuple[list[int], str] | str:
 		
 		else:
 			insts += 1
-
+	
 	# SECOND PASS
 	sourcemap: list[int] = []
 	for PC, line in enumerate(fl):
 		line = line.strip()
-	
-		if (any((x.strip() != '' for x in fl[PC+1:])) and line.endswith('hlt')):
+		
+		if (any((x.strip() != '' for x in fl[PC + 1:])) and line.endswith('hlt')):
 			err.log_errors(PC, [Error('hlt present before end of code', PC)])
 		if (PC >= line_cnt):
 			if (not line.endswith('hlt')):
@@ -75,7 +75,7 @@ def parse(text: str) -> tuple[list[int], str] | str:
 			buffer = encode(opc, cat, line, mem)
 			sourcemap.append(PC)
 			commands.append(buffer)
-
+	
 	if err.errors_present():
 		return [-1], '\n'.join(err.get_errors())
 	else:
@@ -83,4 +83,3 @@ def parse(text: str) -> tuple[list[int], str] | str:
 			return '\n'.join(commands)
 		else:
 			return sourcemap, '\n'.join(commands)
-	

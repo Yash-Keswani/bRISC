@@ -6,8 +6,13 @@
       "notes": "May set the overflow flag. Upper limit is 65536",
       "syntax": "ADD <R1> <R2> <R3>",
       "type": "A",
-      "src": [0, 1],
-      "dest": [0]
+      "src": [
+        0,
+        1
+      ],
+      "dest": [
+        0
+      ]
     }
   ],
   "sub": [
@@ -17,8 +22,13 @@
       "notes": "May set the overflow flag. Lower Limit is 0",
       "syntax": "SUB <R1> <R2> <R3>",
       "type": "A",
-      "src": [0, 1],
-      "dest": [0]
+      "src": [
+        0,
+        1
+      ],
+      "dest": [
+        0
+      ]
     }
   ],
   "mov": [
@@ -28,8 +38,12 @@
       "notes": "<Imm> must be an 8-bit value.",
       "syntax": "MOV <R1> $<Imm>",
       "type": "B",
-      "src": [1],
-      "dest": [0]
+      "src": [
+        1
+      ],
+      "dest": [
+        0
+      ]
     },
     {
       "opcode": "0b00011",
@@ -37,8 +51,12 @@
       "notes": "Special-use registers can be read from, but not written into.",
       "syntax": "MOV <R1> <R2>",
       "type": "C",
-      "src": [1],
-      "dest": [0]
+      "src": [
+        1
+      ],
+      "dest": [
+        0
+      ]
     }
   ],
   "ld": [
@@ -48,8 +66,12 @@
       "notes": "Memory address has a cap of 512. Avoid messing with instructions in the memory.",
       "syntax": "LD <R1> <ADDR>",
       "type": "D",
-      "src": [1],
-      "dest": [0]
+      "src": [
+        1
+      ],
+      "dest": [
+        0
+      ]
     }
   ],
   "st": [
@@ -59,8 +81,12 @@
       "notes": "Memory address has a cap of 512. Avoid messing with instructions in the memory.",
       "syntax": "ST <R1> <ADDR>",
       "type": "D",
-      "src": [0],
-      "dest": [1]
+      "src": [
+        0
+      ],
+      "dest": [
+        1
+      ]
     }
   ],
   "mul": [
@@ -70,8 +96,13 @@
       "notes": "May set the overflow flag. Upper limit is 65536.",
       "syntax": "MUL <R1> <R2> <R3>",
       "type": "A",
-      "src": [0, 1],
-      "dest": [0]
+      "src": [
+        0,
+        1
+      ],
+      "dest": [
+        0
+      ]
     }
   ],
   "div": [
@@ -80,8 +111,14 @@
       "semantics": "Performs <R3> / <R4>. Stores the quotient in R0 and the remainder in R1.",
       "syntax": "DIV <R3> <R4>",
       "type": "C",
-      "src": [0, 1],
-      "dest": [0, 1]
+      "src": [
+        0,
+        1
+      ],
+      "dest": [
+        0,
+        1
+      ]
     }
   ],
   "rs": [
@@ -90,8 +127,13 @@
       "semantics": "Right shifts <R1> by $<Imm>, where Imm is an 8 bit value.",
       "syntax": "RS <R1> $<Imm>",
       "type": "B",
-      "src": [0, 1],
-      "dest": [0]
+      "src": [
+        0,
+        1
+      ],
+      "dest": [
+        0
+      ]
     }
   ],
   "ls": [
@@ -100,8 +142,13 @@
       "semantics": "Left shifts <R1> by $<Imm>, where Imm is an 8 bit value.",
       "syntax": "RS <R1> $<Imm>",
       "type": "B",
-      "src": [0, 1],
-      "dest": [0]
+      "src": [
+        0,
+        1
+      ],
+      "dest": [
+        0
+      ]
     }
   ],
   "xor": [
@@ -110,8 +157,13 @@
       "semantics": "Performs bitwise XOR of <R2> and <R3>. Stores the result in <R1>.",
       "syntax": "XOR <R1> <R2> <R3>",
       "type": "A",
-      "src": [0, 1],
-      "dest": [0]
+      "src": [
+        0,
+        1
+      ],
+      "dest": [
+        0
+      ]
     }
   ],
   "or": [
@@ -120,8 +172,13 @@
       "semantics": "Performs bitwise OR of <R2> and <R3>. Stores the result in <R1>. ",
       "syntax": "OR <R1> <R2> <R3>",
       "type": "A",
-      "src": [0, 1],
-      "dest": [0]
+      "src": [
+        0,
+        1
+      ],
+      "dest": [
+        0
+      ]
     }
   ],
   "and": [
@@ -130,8 +187,13 @@
       "semantics": "Performs bitwise AND of <R2> and <R3>. Stores the result in <R1>. ",
       "syntax": "AND <R1> <R2> <R3>",
       "type": "A",
-      "src": [0, 1],
-      "dest": [0]
+      "src": [
+        0,
+        1
+      ],
+      "dest": [
+        0
+      ]
     }
   ],
   "not": [
@@ -140,8 +202,12 @@
       "semantics": "Performs bitwise NOT of <R2>. Stores the result in <R1>.",
       "syntax": "NOT <R1> <R2>",
       "type": "C",
-      "src": [1],
-      "dest": [0]
+      "src": [
+        1
+      ],
+      "dest": [
+        0
+      ]
     }
   ],
   "cmp": [
@@ -150,7 +216,10 @@
       "semantics": "Compares <R1> and <R2> and sets up the FLAGS register.",
       "syntax": "CMP <R1> <R2>",
       "type": "C",
-      "src": [0, 1],
+      "src": [
+        0,
+        1
+      ],
       "dest": []
     }
   ],
@@ -160,7 +229,10 @@
       "semantics": "Jumps unconditionally to <address>",
       "syntax": "jmp <address>",
       "type": "E",
-      "src": [0, 1],
+      "src": [
+        0,
+        1
+      ],
       "dest": []
     }
   ],
@@ -170,7 +242,10 @@
       "semantics": "Jumps to <address> if the less than flag is set in the FLAGS register.",
       "syntax": "jlt <address>",
       "type": "E",
-      "src": [0, 1],
+      "src": [
+        0,
+        1
+      ],
       "dest": []
     }
   ],
@@ -180,7 +255,10 @@
       "semantics": "Jumps to <address> if the greater than flag is set in the FLAGS register.",
       "syntax": "jgt <address>",
       "type": "E",
-      "src": [0, 1],
+      "src": [
+        0,
+        1
+      ],
       "dest": []
     }
   ],
@@ -191,7 +269,10 @@
       "notes": "",
       "syntax": "je <address>",
       "type": "E",
-      "src": [0, 1],
+      "src": [
+        0,
+        1
+      ],
       "dest": []
     }
   ],

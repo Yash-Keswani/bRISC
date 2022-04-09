@@ -5,3 +5,4 @@ texttable==1.6.4
 whitenoise==6.0.0
 protobuf==3.19.4
 pycryptodome==3.14.1
+django-crontab==0.7.1

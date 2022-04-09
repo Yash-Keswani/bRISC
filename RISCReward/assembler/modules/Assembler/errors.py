@@ -1,9 +1,10 @@
 import json
 import re
 from dataclasses import dataclass
-from typing import IO
-from .memory import Memory
 from pathlib import Path
+from typing import IO
+
+from .memory import Memory
 
 def openp(filepath: str) -> IO:
 	return open(Path(__file__).with_name(filepath))

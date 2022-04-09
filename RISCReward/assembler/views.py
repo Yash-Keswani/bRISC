@@ -1,11 +1,12 @@
 import json
 
-from django.shortcuts import render
-from django.http import HttpResponse, HttpRequest, QueryDict
-from django.views.decorators.http import require_POST
-from .modules.Assembler.assembler import parse
-from .modules.Executor.simulator import Executor
 import texttable
+from django.http import HttpResponse, HttpRequest
+from django.shortcuts import render
+from django.views.decorators.http import require_POST
+
+from .modules.Assembler.assembler import parse
+from .modules.Executor.simulator import Executor, Mode
 
 def index(request: HttpRequest):
 	return render(request, "assembler/index.html", {})
@@ -23,7 +24,16 @@ def process(request: HttpRequest) -> HttpResponse:
 		# srcmap = bin_cod[0]
 		srcmap = {x[0]: x[1] for x in zip(bin_cod[0], bin_cod[1].split("\n"))}
 		# bin_out = bin_cod[1]
-		output = Executor.process(pipelined=True, token=data.get("session_token"))
+		if data.get("mode") == 'run':
+			mode = Mode.RUN
+		elif data.get("mode") == 'debug':
+			mode = Mode.DEBUG
+		elif data.get("mode") == 'step':
+			mode = Mode.STEP
+		else:
+			raise AssertionError("Mode must be run, debug, or step")
+		
+		output = Executor.process(pipelined=True, token=data.get("session_token"), action=mode)
 		out = output["state_dump"]
 		pl = output["pipeline"]
 		mem = output["mem_dump"]
@@ -41,11 +51,11 @@ def process(request: HttpRequest) -> HttpResponse:
 					pipeline[cycle[i]][cycle_num] = phases[i]
 		tbl.add_rows(pipeline, header=False)
 		pipeline = tbl.draw()
-		
+	
 	else:
 		Bbin = bin_cod[1]
 		out = bin_out = srcmap = pipeline = mem = state = regs = token = ""
-		
+	
 	return HttpResponse(
 		content=json.dumps(
 			{

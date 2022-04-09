@@ -30,6 +30,32 @@
         .hidden_element{
             display: none;
         }
+
+        .highlight-f{
+            position:absolute;
+            background:rgba(100,200,100,0.5);
+            z-index:20
+        }
+        .highlight-d{
+            position:absolute;
+            background:rgba(100,100,200,0.5);
+            z-index:40
+        }
+        .highlight-x{
+            position:absolute;
+            background:rgba(200,100,200,0.5);
+            z-index:40
+        }
+        .highlight-m{
+            position:absolute;
+            background:rgba(200,100,100,0.5);
+            z-index:40
+        }
+        .highlight-w{
+            position:absolute;
+            background:rgba(100,200,240,0.5);
+            z-index:40
+        }
     </style>
 </head>
 
@@ -40,16 +66,16 @@
         <div class="editor" style="width: 100%;height: 92%;" id="editor_in"></div>
         <div class="hstack d-xxl-flex" style="justify-content: space-around; margin-top: 2%; height: 8%">
             <div class="btn-group" role="group" style="width: 40%; height: 100%">
-                <button class="btn btn-dark debug" type="button" onclick="submit_code_run()"
+                <button class="btn btn-dark debug" type="button" onclick="submit_code_run('run')"
                         style="height: 100%;margin-right: 2%;width: 53%;">▶
                 </button>
-                <button class="btn btn-dark debug" type="button"
+                <button class="btn btn-dark debug" type="button" onclick="submit_code_run('debug')"
                         style="height: 100%;width: 53%;">🐞
                 </button>
             </div>
             <div class="btn-group" role="group"
                  style="height: 100%; width: 40%;">
-                <button class="btn btn-dark debug" type="button"
+                <button class="btn btn-dark debug" type="button" onclick="submit_code_run('step')"
                         style="height: 100%;margin-right: 2%;width: 30%; font-size: 1vw">↷
                 </button>
                 <button class="btn btn-dark debug" type="button"
@@ -73,17 +99,19 @@
             </div>
             <div class="btn-group-vertical" role="group" style="height: 100%;margin-left:1%;">
                 <button class="btn btn-dark" type="button"
-                        style="height: 20%;min-height: 20%;max-height: 20%;margin: 5% 0;font-size: 1.2vw;font-family: monospace;">
+                        style="height: 20%;min-height: 20%;max-height: 20%;margin: 5% 0;font-size: 1.2vw;font-family: monospace;"
+                        id = "Help">
                     Help
                 </button>
                 <button class="btn btn-dark" type="button"
-                        style="height: 20%;min-height: 20%;max-height: 20%;margin: 5% 0;font-size: 1.2vw;font-family: monospace;">
+                        style="height: 20%;min-height: 20%;max-height: 20%;margin: 5% 0;font-size: 1.2vw;font-family: monospace;"
+                        onclick="flip_views('debug, specs', this)" id="ISA Specs">
                     ISA Specs
                 </button>
                 <button class="btn btn-dark" type="button"
                         style="height: 20%;min-height: 20%;max-height: 20%;margin: 5% 0;font-size: 1.2vw;font-family: monospace;"
-                        onclick="flip_views('debug', 'pipeline')">
-                    Debug
+                        onclick="flip_views('debug', 'pipeline', this)" id="Pipeline">
+                    Pipeline
                 </button>
                 <button class="btn btn-dark" type="button"
                         style="height: 20%;min-height: 20%;max-height: 20%;margin: 5% 0;font-size: 1.2vw;font-family: monospace;">
@@ -114,9 +142,15 @@
 <script src="{% static 'RISCReward/assets/bootstrap/js/bootstrap.min.js' %}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pivottable/2.23.0/pivot.min.js"></script>
 <script type="text/javascript">
-    function flip_views(view1, view2){
+    function flip_views(view1, view2, button){
         $('#'+view1).toggleClass('hidden_element')
         $('#'+view2).toggleClass('hidden_element')
+        if (button.innerHTML === "Debug"){
+            button.innerHTML = button.id;
+        }
+        else{
+            button.innerHTML = "Debug";
+        }
     }
 
     editor_IDs = ["editor_in", "binary", "mem", "reg", "console"]
@@ -143,10 +177,10 @@
     editor_in.setOption("firstLineNumber", 0)
     for (const editor of [bin, mem, regs, consol]){
         editor.setReadOnly(true)
-        editor.session.removeMarker()
         editor.setOption("highlightActiveLine", false)
         editor.renderer.setPadding(10)
     }
+
     consol.renderer.setShowGutter(false)
 
     async function query (url='', data={}){
@@ -188,8 +222,7 @@
         $('#' + tableId).html(rows);
     }
 
-    var src_map
-    function submit_code_run(){
+    function set_gutter(){
         bin.session.gutterRenderer = {
             getWidth: function(session, lastLineNumber, config) {
                 return lastLineNumber.toString().length * config.characterWidth;
@@ -217,10 +250,20 @@
                 return row.toString(16).padStart(2,'0').toUpperCase();
             }
         };
+    }
+
+    const Range = ace.require('ace/range').Range;
+    const markers_e = [null, null, null, null, null];
+    const markers_s = [null, null, null, null, null];
+
+    function submit_code_run(format){
+        set_gutter()
+        console.log(window.sessionStorage.getItem("session_token"))
         query('parse_code',
             {
                 'my_code': editor_in.getValue(),
-                'session_token': window.sessionStorage.getItem("session_token")
+                'session_token': window.sessionStorage.getItem("session_token"),
+                'mode': format
             }
         )
         .then(out=>{
@@ -232,16 +275,29 @@
             window.sessionStorage.setItem("session_token", out["token"])
 
             src_map = JSON.parse(out["src_map"])
+            k = Object.keys(src_map)
+            console.log(k)
+
             bin.session.gutter_numbering = src_map
             bin.setValue(Object.values(src_map).join("\n"), -1)
 
             // console.log(out["state"]);
-            // console.log(JSON.parse(out["state"]));
-            loadTable("state", ["lno", "srcs", "dests", "out_main", "out_flags"], JSON.parse(out["state"]))
+            const state = JSON.parse(out["state"]);
+            loadTable("state", ["lno", "srcs", "dests", "out_main", "out_flags"], state)
+
+            const phases = ["f", "d", "x", "m", "w"]
+            for (let i = 0; i < 5; i++) {
+                if (markers_e[i] !== null){
+                    editor_in.session.removeMarker(markers_e[i])
+                    bin.session.removeMarker(markers_s[i])
+                }
+                markers_e[i] = editor_in.session.addMarker(new Range(k[state[i]["lno"]], 0,
+                    parseInt(k[state[i]["lno"]])+1, 0), "highlight-"+phases[i], "line");
+                markers_s[i] = bin.session.addMarker(new Range(
+                    state[i]["lno"], 0, state[i]["lno"]+1, 0), "highlight-"+phases[i], "line")
+            }
         })
     }
-
-
 </script>
 </body>
 </html>

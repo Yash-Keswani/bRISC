@@ -6,7 +6,7 @@ class LU:
 			'main': (params[0] + params[1]) % 65536,
 			'flags': int(f"{int(params[0] + params[1] >= 65536)}000", base=2)
 		}
-		
+	
 	# subtracts two integers
 	@staticmethod
 	def sub(params: list[int]):
@@ -14,7 +14,7 @@ class LU:
 			'main': max(params[0] - params[1], 0),
 			'flags': int(f"{int(params[0] - params[1] < 0)}000", base=2)
 		}
-		
+	
 	# multiply two integers
 	@staticmethod
 	def mul(params: list[int]):
@@ -22,7 +22,7 @@ class LU:
 			'main': (params[0] * params[1]) % 65536,
 			'flags': int(f"{int(params[0] * params[1] >= 65536)}000", base=2)
 		}
-		
+	
 	# divides two integers
 	@staticmethod
 	def div(params: list[int]):
@@ -30,35 +30,35 @@ class LU:
 			'main': params[0] // params[1],
 			'alter': params[0] % params[1]
 		}
-		
+	
 	# performs bitwise XOR operation
 	@staticmethod
 	def xor(params: list[int]):
 		return {
 			'main': params[0] ^ params[1],
 		}
-		
+	
 	# performs bitwise OR operation
 	@staticmethod
 	def orr(params: list[int]):
 		return {
 			'main': params[0] | params[1],
 		}
-		
+	
 	# performs bitwise AND operation
 	@staticmethod
 	def andr(params: list[int]):
 		return {
 			'main': params[0] & params[1],
 		}
-		
+	
 	# performs bitwise NOT operation
 	@staticmethod
 	def notr(params: list[int]):
 		return {
-			"main": ~ params[1] + 2**16
+			"main": ~ params[1] + 2 ** 16
 		}
-		
+	
 	# compares two integers
 	@staticmethod
 	def cmp(params: list[int]):
@@ -67,35 +67,35 @@ class LU:
 				f"0{int(params[0] < params[1])}{int(params[0] > params[1])}{int(params[0] == params[1])}", base=2
 			)
 		}
-		
+	
 	# move from register to register
 	@staticmethod
 	def movr(params: list[int]):
 		return {
 			'main': params[1]
 		}
-		
+	
 	# load from memory to register
 	@staticmethod
 	def ld(params: list[int]):
 		return {
 			'main': params[1]
 		}
-		
+	
 	# store register in memory
 	@staticmethod
 	def st(params: list[int]):
 		return {
 			'main': params[0]
 		}
-		
+	
 	# move immediate to register
 	@staticmethod
 	def movi(params: list[int]):
 		return {
 			'main': params[1]
 		}
-		
+	
 	# jumps to memory address
 	@staticmethod
 	def jmp(params: list[int]):
@@ -103,7 +103,7 @@ class LU:
 			'main': params[0],
 			'branch': 1
 		}
-		
+	
 	# jumps to memory address if the greater than flag is set
 	@staticmethod
 	def jgt(params: list[int]):
@@ -111,7 +111,7 @@ class LU:
 			'main': params[0],
 			'branch': int(f'{params[1]:016b}'[-2])
 		}
-		
+	
 	# jumps to memory address if the less than flag is set
 	@staticmethod
 	def jlt(params: list[int]):
@@ -119,7 +119,7 @@ class LU:
 			'main': params[0],
 			'branch': int(f'{params[1]:016b}'[-3])
 		}
-		
+	
 	# jumps to memory address if the equal flag is set
 	@staticmethod
 	def je(params: list[int]):
@@ -127,21 +127,21 @@ class LU:
 			'main': params[0],
 			'branch': int(f'{params[1]:016b}'[-1])
 		}
-		
+	
 	# right shifts register by an immediate value
 	@staticmethod
 	def rs(params: list[int]):
 		return {
 			'main': params[0] >> params[1]
 		}
-		
+	
 	# left shifts register by an immediate value
 	@staticmethod
 	def ls(params: list[int]):
 		return {
 			'main': params[0] << params[1]
 		}
-		
+	
 	# stops running code
 	@staticmethod
 	def hlt(params: list[int]):

@@ -17,6 +17,7 @@ def returnIfNone(fun):
 		else:
 			cls.usage[-1].append(line.lno)
 			return fun(cls, line, **kwargs)
+	
 	return wrap
 
 @dataclass
@@ -30,11 +31,13 @@ class LineInfo():
 	cat: str = ""
 	
 	def __init__(self):
+		self.lno = self.opc = -1
+		self.cat = ""
 		self.srcs = []
 		self.dests = []
 		self.out = {"main": -1, "alter": -1, "branch": -1, "flags": -1}
 	
-	def __serialise__(self)->template_pb2.line_info:
+	def __serialise__(self) -> template_pb2.line_info:
 		toret = template_pb2.line_info()
 		toret.lno = self.lno
 		toret.line_text = self.line_text
@@ -66,7 +69,20 @@ class Pipeline:
 		Pipeline.mem = mem
 		Pipeline.reg = reg
 		Pipeline.usage = []
-		
+	
+	@classmethod
+	def __serialise__(cls) -> template_pb2.pipeline:
+		toret = template_pb2.pipeline()
+		for row in cls.usage:
+			curr = toret.lines.add()
+			curr.reg_num.extend(row)
+		return toret
+	
+	@classmethod
+	def __deserialise__(cls, data: template_pb2.pipeline):
+		for row in data.lines:
+			cls.usage.append(list(row.reg_num))
+	
 	@classmethod
 	def getUsage(cls):
 		return cls.usage
@@ -100,7 +116,7 @@ class Pipeline:
 		
 		if line.opc == 0b01110 or line.cat == 'A':  # overflow is a bitch
 			cls.reg.hold(7)
-			
+	
 	@classmethod
 	@returnIfNone
 	def X(cls, line: LineInfo) -> None:
@@ -131,4 +147,3 @@ class Pipeline:
 				cls.reg.release(dest)
 			if line.opc == 0b01110 or line.cat == 'A':  # overflow is a bitch
 				cls.reg.release(7)  # FLAGS
-	

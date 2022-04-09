@@ -8,8 +8,8 @@ class Locker:
 	def __init__(self):
 		self.locks = {}
 		self.waiting = {}
-		
-	def __serialise__(self)->template_pb2.locker:
+	
+	def __serialise__(self) -> template_pb2.locker:
 		toret = template_pb2.locker()
 		copy_dict(toret.locks, self.locks)
 		copy_dict(toret.waiting, self.waiting)
@@ -58,8 +58,8 @@ class Registry(Locker):
 		}
 		self.locks = {X: 0 for X in range(8)}  # locked registers cannot be written into
 		self.waiting = {X: False for X in range(8)}  # locked registers cannot be written into
-		
-	def __serialise__(self)->template_pb2.registry:
+	
+	def __serialise__(self) -> template_pb2.registry:
 		toret = template_pb2.registry()
 		toret.PC = self.PC
 		toret.FLAGS = self.FLAGS
@@ -75,7 +75,7 @@ class Registry(Locker):
 		self.sregs = data.sregs
 		self.locks = data.all_locks.locks
 		self.waiting = data.all_locks.waiting
-		
+	
 	# writes a value to a certain register
 	def write_reg(self, loc: int, val: int) -> None:
 		self.regs[loc] = val
@@ -103,14 +103,14 @@ class Registry(Locker):
 	
 	# returns the full data within the registry, including flags
 	def fetch_reg(self) -> str:
-		return " ".join([f'{x:016b}' for x in (self.regs + [self.FLAGS])])+" \n"
+		return " ".join([f'{x:016b}' for x in (self.regs + [self.FLAGS])]) + " \n"
 
 class Memory(Locker):
 	# initialises memory of the given size
 	def __init__(self, size: int):
 		super().__init__()
 		self.mem = [0b0000_0000_0000_0000] * size
-		
+	
 	def __serialise__(self) -> template_pb2.memory:
 		toret = template_pb2.memory()
 		toret.all_locks.CopyFrom(super().__serialise__())
@@ -120,26 +120,33 @@ class Memory(Locker):
 	def __deserialise__(self, data: template_pb2.memory) -> None:
 		self.locks = data.all_locks.locks
 		self.mem = data.mem_value
-		
+	
 	# writes a value at a given memory location
 	def write_loc(self, loc: int, val: int) -> None:
 		Tracer.log_write(loc)
 		self.mem[loc] = val
-		
+	
 	# reads the value at a given memory location
 	def read_loc(self, loc: int) -> int:
 		if self.check(loc):
 			return -1
 		Tracer.log_read(loc)
 		return self.mem[loc]
-		
+	
 	# returns the full data within the memory
 	def fetch_mem(self) -> str:
 		return "\n".join([f'{x:016b}' for x in self.mem])
-	
+
 # logs memory access traces
 class Tracer:
 	traces: list[tuple[str, int]] = []
+	
+	def __serialise__(self):
+		toret = template_pb2.tracer()
+		toret.traces.extend(self.traces)
+	
+	def __deserialise__(self, data: template_pb2.tracer):
+		self.traces = list(data.traces)
 	
 	# marks that a memory location was read from
 	@staticmethod

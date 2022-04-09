@@ -32,6 +32,7 @@ ALLOWED_HOSTS = ["127.0.0.1", "0.0.0.0"]
 
 INSTALLED_APPS = [
 	'assembler.apps.AssemblerConfig',
+	'django_crontab',
 	'django.contrib.admin',
 	'django.contrib.auth',
 	'django.contrib.contenttypes',
@@ -125,3 +126,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 django_heroku.settings(locals())
+
+CRONJOBS = [
+	('*/30 * * * *', 'assembler.cron.prune')
+]

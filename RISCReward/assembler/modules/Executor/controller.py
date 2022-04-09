@@ -1,11 +1,12 @@
 import json
-from typing import IO
-from .storage import Memory, Registry
 from pathlib import Path
+from typing import IO
+
+from .storage import Memory, Registry
 
 def openp(filepath: str) -> IO:
-	return open(Path(__file__).parent.__str__()+filepath)
-	
+	return open(Path(__file__).parent.__str__() + filepath)
+
 def lookup(data: dict[list[dict]], opc: int) -> dict:
 	for inst in data.values():
 		for style in inst:
@@ -95,7 +96,7 @@ class CU:
 			]
 		else:
 			sources = []
-			
+		
 		for i in range(len(sources)):
 			if i not in lookup(cls.insts, opc)["src"]:
 				sources[i] = 0
@@ -205,4 +206,3 @@ class CU:
 			return True
 		else:
 			return False
-		
