@@ -26,7 +26,7 @@ class AsmTest(TestCase):
 				
 				with open(self.bin_dir+"/"+b) as fl:
 					byt = fl.read()
-					self.assertEqual(asm_out.strip(), byt.strip())
+					self.assertEqual(asm_out[1].strip(), byt.strip())
 				
 	def testExecutor(self):
 		E = Executor()

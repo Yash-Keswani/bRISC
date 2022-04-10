@@ -7,7 +7,7 @@ from .reader import find_cat, find_variant, encode
 def parse(text: str) -> tuple[list[int], str] | str:
 	err = Logger()
 	commands: list[str] = []
-	fl: list[str] = text.split('\n')
+	fl: list[str] = [x.partition('#')[0] for x in text.split('\n')]
 	
 	# only include instructions in line count
 	ins_cnt = len([x for x in fl if x.strip() != '' and not x.strip().startswith('var')])

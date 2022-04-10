@@ -53,8 +53,9 @@ def process(request: HttpRequest) -> HttpResponse:
 		pipeline = tbl.draw()
 	
 	else:
-		Bbin = bin_cod[1]
-		out = bin_out = srcmap = pipeline = mem = state = regs = token = ""
+		out = bin_cod[1]
+		token = None
+		bin_out = srcmap = pipeline = mem = state = regs = ""
 	
 	return HttpResponse(
 		content=json.dumps(

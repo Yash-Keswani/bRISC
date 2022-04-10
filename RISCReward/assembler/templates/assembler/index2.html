@@ -33,27 +33,27 @@
 
         .highlight-f{
             position:absolute;
-            background:rgba(100,200,100,0.5);
+            background:rgba(200,100,100,0.9);
             z-index:20
         }
         .highlight-d{
             position:absolute;
-            background:rgba(100,100,200,0.5);
+            background:rgba(200,100,100,0.7);
             z-index:40
         }
         .highlight-x{
             position:absolute;
-            background:rgba(200,100,200,0.5);
+            background:rgba(200,100,100,0.5);
             z-index:40
         }
         .highlight-m{
             position:absolute;
-            background:rgba(200,100,100,0.5);
+            background:rgba(200,100,100,0.35);
             z-index:40
         }
         .highlight-w{
             position:absolute;
-            background:rgba(100,200,240,0.5);
+            background:rgba(200,100,100,0.2);
             z-index:40
         }
     </style>
@@ -195,8 +195,19 @@
     }
 
     function wrap_null(text){
-        if (text === undefined){
-            return "_"
+        if (text === undefined || text.toString() === "-1" || text.length === 0){
+            return "-"
+        }
+        if (Array.isArray(text)){
+            const toret = [];
+            text.forEach(function (elem) {
+                if (elem.toString() === "-1"){
+                    toret.push("-");
+                } else{
+                    toret.push(elem)
+                }
+            })
+            return toret
         } else{
             return text
         }
@@ -204,18 +215,23 @@
 
     phases = ["F","D","X","M","W"]
     function loadTable(tableId, fields, data) {
-        let rows = '<thead><th>Phase</th><th>Line No.</th><th>Sources</th><th>Destinations</th><th>Value</th><th>Flags</th></tr></thead>';
+        let rows = '<thead><th>Phase</th><th>Line No.</th><th>Sources</th><th>Destinations</th><th>Output</th><th>Flags</th></tr></thead>';
 
         $.each(data, function(index, item) {
             let row = '<tr>';
             row += '<th scope="row">'+phases[index]+''+'</th>'
             $.each(fields, function(index, field) {
+                let elem = item[field];
+                if (field === "lno"){
+                    elem = Object.keys(src_map)[elem]
+                }
                 if (field.includes("_")){
                     // console.log(field)
                     // console.log(item)
-                    field = item[field.split("_")[0]][field.split("_")[1]]
+                    elem = item[field.split("_")[0]][field.split("_")[1]]
+                    console.log(field)
                 }
-                row += '<td>' + wrap_null(item[field+'']) + '</td>';
+                row += '<td>' + wrap_null(elem) + '</td>';
             });
             rows += row + '</tr>';
         });
@@ -258,7 +274,7 @@
 
     function submit_code_run(format){
         set_gutter()
-        console.log(window.sessionStorage.getItem("session_token"))
+        // console.log(window.sessionStorage.getItem("session_token"))
         query('parse_code',
             {
                 'my_code': editor_in.getValue(),
@@ -276,13 +292,14 @@
 
             src_map = JSON.parse(out["src_map"])
             k = Object.keys(src_map)
-            console.log(k)
+            // console.log(k)
 
             bin.session.gutter_numbering = src_map
             bin.setValue(Object.values(src_map).join("\n"), -1)
 
             // console.log(out["state"]);
             const state = JSON.parse(out["state"]);
+            console.log(state);
             loadTable("state", ["lno", "srcs", "dests", "out_main", "out_flags"], state)
 
             const phases = ["f", "d", "x", "m", "w"]
