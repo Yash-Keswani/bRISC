@@ -31,29 +31,29 @@
             display: none;
         }
 
-        .highlight-f{
+        .highlight-F{
             position:absolute;
-            background:rgba(200,100,100,0.9);
+            background:rgba(240,150,150,0.7);
             z-index:20
         }
-        .highlight-d{
+        .highlight-D{
             position:absolute;
-            background:rgba(200,100,100,0.7);
+            background:rgba(170,240,170,0.7);
             z-index:40
         }
-        .highlight-x{
+        .highlight-X{
             position:absolute;
-            background:rgba(200,100,100,0.5);
+            background:rgba(150,150,240,0.7);
             z-index:40
         }
-        .highlight-m{
+        .highlight-M{
             position:absolute;
-            background:rgba(200,100,100,0.35);
+            background:rgba(220,150,220,0.7);
             z-index:40
         }
-        .highlight-w{
+        .highlight-W{
             position:absolute;
-            background:rgba(200,100,100,0.2);
+            background:rgba(220,220,150,0.7);
             z-index:40
         }
     </style>
@@ -229,7 +229,7 @@
                     // console.log(field)
                     // console.log(item)
                     elem = item[field.split("_")[0]][field.split("_")[1]]
-                    console.log(field)
+                    // console.log(field)
                 }
                 row += '<td>' + wrap_null(elem) + '</td>';
             });
@@ -271,9 +271,23 @@
     const Range = ace.require('ace/range').Range;
     const markers_e = [null, null, null, null, null];
     const markers_s = [null, null, null, null, null];
+    const last = [null, null, null, null, null]
 
-    function submit_code_run(format){
+    k_inv = {}
+    function submit_code_run(format) {
         set_gutter()
+        const phases = ["F", "D", "X", "M", "W"]
+
+        if (!editor_in.session.bgTokenizer.$tokenizeRow_orig)
+            editor_in.session.bgTokenizer.$tokenizeRow_orig = editor_in.session.bgTokenizer.$tokenizeRow
+        editor_in.session.bgTokenizer.$tokenizeRow = function(row) {
+            let tokens = editor_in.session.bgTokenizer.$tokenizeRow_orig(row)
+            if (k_inv[row] != null) {
+                tokens.push({type: "comment", value: "  ~ "+phases[k_inv[row]]})
+            }
+            return tokens
+        }
+
         // console.log(window.sessionStorage.getItem("session_token"))
         query('parse_code',
             {
@@ -282,39 +296,57 @@
                 'mode': format
             }
         )
-        .then(out=>{
-            // bin.setValue(out["bin"], -1)
-            consol.setValue(out["out"], -1)
-            regs.setValue(out["regs"], -1)
-            mem.setValue(out["memory"], -1)
-            $('#pipeline_diagram').html(out["pipeline"])
-            window.sessionStorage.setItem("session_token", out["token"])
+            .then(out => {
+                // bin.setValue(out["bin"], -1)
+                consol.setValue(out["out"], -1)
+                regs.setValue(out["regs"], -1)
+                mem.setValue(out["memory"], -1)
+                $('#pipeline_diagram').html(out["pipeline"])
+                window.sessionStorage.setItem("session_token", out["token"])
 
-            src_map = JSON.parse(out["src_map"])
-            k = Object.keys(src_map)
-            // console.log(k)
+                src_map = JSON.parse(out["src_map"])
+                k = Object.keys(src_map)
+                i = 0;
+                // console.log(k)
 
-            bin.session.gutter_numbering = src_map
-            bin.setValue(Object.values(src_map).join("\n"), -1)
+                bin.setValue(Object.values(src_map).join("\n"), -1)
+                bin.renderer.updateFull()
 
-            // console.log(out["state"]);
-            const state = JSON.parse(out["state"]);
-            console.log(state);
-            loadTable("state", ["lno", "srcs", "dests", "out_main", "out_flags"], state)
+                // console.log(out["state"]);
+                const state = JSON.parse(out["state"]);
+                // console.log(state);
+                loadTable("state", ["lno", "srcs", "dests", "out_main", "out_flags"], state)
 
-            const phases = ["f", "d", "x", "m", "w"]
-            for (let i = 0; i < 5; i++) {
-                if (markers_e[i] !== null){
-                    editor_in.session.removeMarker(markers_e[i])
-                    bin.session.removeMarker(markers_s[i])
+                for (let i = 0; i < 5; i++) {
+                    if (last[i] !== null){
+                        editor_in.session.removeMarker(markers_e[i])
+                        bin.session.removeMarker(markers_s[i])
+                        editor_in.session.bgTokenizer.lines[k[last[i]]].pop()
+                    }
+                    last[i] = null
+                    if(k[state[i]["lno"]] >= 0){
+                        markers_e[i] = editor_in.session.addMarker(new Range(k[state[i]["lno"]], 0,
+                            parseInt(k[state[i]["lno"]]), 1), "highlight-" + phases[i], "fullLine");
+                        markers_s[i] = bin.session.addMarker(new Range(
+                            state[i]["lno"], 0, state[i]["lno"], 1), "highlight-" + phases[i], "fullLine")
+                        editor_in.session.bgTokenizer.lines[k[state[i]["lno"]]].push({
+                            type: "comment",
+                            value: "  ~ " + phases[i]
+                        })
+                        last[i] = state[i]["lno"]
+
+                    }
                 }
-                markers_e[i] = editor_in.session.addMarker(new Range(k[state[i]["lno"]], 0,
-                    parseInt(k[state[i]["lno"]])+1, 0), "highlight-"+phases[i], "line");
-                markers_s[i] = bin.session.addMarker(new Range(
-                    state[i]["lno"], 0, state[i]["lno"]+1, 0), "highlight-"+phases[i], "line")
-            }
-        })
+                k_inv = {}
+                for (const kKey in last) {
+                    k_inv[k[last[kKey]]] = i++
+                }
+                editor_in.renderer.updateFull()
+                bin.renderer.updateFull()
+            })
     }
+
+
 </script>
 </body>
 </html>
