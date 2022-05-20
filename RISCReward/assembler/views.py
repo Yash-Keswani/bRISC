@@ -42,7 +42,7 @@ def process(request: HttpRequest) -> HttpResponse:
 		state = json.dumps([x.__dict__ for x in output["state"]])
 		
 		pipeline = [[" " for x in range(len(pl))] for y in range(len(bin_cod[0]))]
-		phases = ["F", "M", "W", "D", "X"]
+		phases = ["F", "D", "X", "M", "W"]
 		
 		tbl = texttable.Texttable(max_width=500)
 		for cycle_num, cycle in enumerate(pl):

@@ -74,28 +74,46 @@ class CU:
 				reg.read_reg(int(line[10:13], base=2)),
 				reg.read_reg(int(line[13:], base=2))
 			]
+			locs = [
+				int(line[10:13], base=2),
+				int(line[13:], base=2)
+			]
 		elif cat == 'B':
 			sources = [
 				reg.read_reg(int(line[5:8], base=2)),
 				int(line[8:], base=2)
+			]
+			locs = [
+				int(line[5:8], base=2)
 			]
 		elif cat == 'C':
 			sources = [
 				reg.read_reg(int(line[10:13], base=2)),
 				reg.read_reg(int(line[13:], base=2))
 			]
+			locs = [
+				int(line[10:13], base=2),
+				int(line[13:], base=2)
+			]
 		elif cat == 'D':
 			sources = [
 				reg.read_reg(int(line[5:8], base=2)),
 				mem.read_loc(int(line[8:], base=2))
+			]
+			locs = [
+				int(line[5:8], base=2),
+				int(line[8:], base=2)
 			]
 		elif cat == 'E':
 			sources = [
 				int(line[8:], base=2),
 				reg.read_reg(7)  # subjected to locking and unlocking
 			]
+			locs = [
+				int(line[8:], base=2)
+			]
 		else:
-			sources = []
+			sources = locs = []
 		
 		for i in range(len(sources)):
 			if i not in lookup(cls.insts, opc)["src"]:

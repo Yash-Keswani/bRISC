@@ -155,17 +155,18 @@ class Executor:
 				lineobj[0].lno = cls.reg.PC
 				
 				Pipeline.F(lineobj[0])
-				Pipeline.M(lineobj[3])
-				Pipeline.W(lineobj[4])
 				Pipeline.D(lineobj[1])
 				
 				STALLING = cls.reg.STALLING() or cls.mem.STALLING()
 				if not lineobj[0].empty() and not STALLING:
 					cls.reg.PC = lineobj[0].lno + 1  # Branching Speculation!
-				
+					
 				Pipeline.X(lineobj[2])
 				BRANCHING = Pipeline.set_next_get_branching(lineobj[2])
 				
+				Pipeline.M(lineobj[3])
+				Pipeline.W(lineobj[4])
+
 				if BRANCHING:  # Free all locks held by purged lines
 					for loc in set(lineobj[0].dests) | set(lineobj[1].dests):
 						if loc < 0:
@@ -180,7 +181,8 @@ class Executor:
 							cls.reg.release(7)
 					
 					lineobj[0] = lineobj[1] = LineInfo()  # purge lines in F and D
-				
+					STALLING = False
+
 				if not lineobj[4].empty():
 					toret["reg_dump"] += f"{lineobj[4].lno:08b} {cls.reg.fetch_reg()}"
 					toret["state_dump"] += lineobj[4].__str__()

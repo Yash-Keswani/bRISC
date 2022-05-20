@@ -90,14 +90,14 @@
   "active": "a52f263d52bcab23",
   "lastOpenFiles": [
     "Storage.md",
-    "Branching.md",
-    "IO Implementation.md",
-    "ISA Specification.md",
-    "Memory Traces.md",
     "Pipelining.md",
-    "Source Maps.md",
-    "Stalling and Locking.md",
+    "ISA Specification.md",
+    "IO Implementation.md",
     "Function Calls and Stacks.md",
-    "Error Handling - Runtime.md"
+    "Error Handling - Runtime.md",
+    "Error Handling - Assembler.md",
+    "Excalidraw/Circle.excalidraw.md",
+    "Branching.md",
+    "Memory Traces.md"
   ]
 }

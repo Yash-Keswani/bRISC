@@ -99,20 +99,24 @@ class Pipeline:
 	@classmethod
 	@returnIfNone
 	def D(cls, line: LineInfo):
+		if cls.reg.STALLING() or cls.mem.STALLING():
+			return
 		line.srcs = CU.fetch_sources(line.opc, line.cat, line.line_text, cls.mem, cls.reg)
 		
 		if -1 in line.srcs:  # prevents circular dependency by locking one's one source in an intermediate stage
 			return
 		
 		line.dests = CU.fetch_destinations(line.opc, line.cat, line.line_text)
-		
+
 		for dest in line.dests:
 			if dest < 0:
 				continue
 			if dest <= 7:
-				cls.reg.hold(dest)
+				if not cls.reg.waiting[dest]:
+					cls.reg.hold(dest)
 			else:
-				cls.mem.hold(dest)
+				if not cls.mem.waiting[dest]:
+					cls.mem.hold(dest)
 		
 		if line.opc == 0b01110 or line.cat == 'A':  # overflow is a bitch
 			cls.reg.hold(7)

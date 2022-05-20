@@ -28,13 +28,12 @@ There is a total of 16 supported registers. Out of these, 8 are general-purpose 
 -> Special-purpose registers should be assumed to be always clobbered
 
 ### Transfer Instructions
-[TODO: hyperlinks here]
 -> `movi` puts an immediate value into a register
 -> `movr` puts the value of a general-purpose register into another general-purpose register
 -> `movs` puts the value of a special-purpose register into a general-purpose register
 
 ## Memory
-The memory has a size of 512 bytes, of which the first 128 are allocated for instructions. 
+The memory has a size of 512 bytes, and 128 more are allocated for instructions. 
 -> Instruction memory cannot be written or read into by load / store
 -> Likewise, an instruction cannot be read from outside the instruction memory, through a jump
 -> The memory is two-byte-addressable. Each instruction and register value is two bytes as well
