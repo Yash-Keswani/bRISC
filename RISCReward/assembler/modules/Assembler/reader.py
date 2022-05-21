@@ -1,3 +1,5 @@
+# UNUSED - the contents of this file were moved somewhere else and it may be removed in the future.
+
 import json
 from pathlib import Path
 from typing import IO
@@ -43,52 +45,12 @@ def find_cat(cmd: str) -> dict[str, int | str]:
 def encode(opc: int, ctg: str, cmd: str, mem: Memory) -> str:
 	params = cmd.split()
 	toret = ""
-	# add R0 R1 R2 => params = ['add','R0','R1','R2']
-	"""
-	match ctg:
-		case 'A':
-			toret += f'{opc:05b}'  # opc = 0 => 0 to 5 bit binary => 00000
-			toret += f'{0:02b}'  # unused 2 bits => 0 to 2 bit binary => 00
-			toret += f'{int(params[1][1]):03b}'  # R0 => 0 => 0 to 3 bit binary => 000
-			toret += f'{int(params[2][1]):03b}'  # R1 => 1 => 1 to 3 bit binary => 001
-			toret += f'{int(params[3][1]):03b}'  # R2 => 2 => 2 to 3 bit binary => 010
-		# toret = "0000000000001010"
-		
-		case 'B':
-			toret += f'{opc:05b}'
-			toret += f'{int(params[1][1]):03b}'
-			toret += f'{int(params[2][1:]):08b}'
-		
-		case 'C':
-			toret += f'{opc:05b}'
-			toret += f'{0:05b}'
-			toret += f'{int(params[1][1]):03b}'
-			try:
-				toret += f'{int(params[2][1]):03b}'
-			except ValueError:
-				toret += f'{7:03b}'
-		
-		case 'D':
-			toret += f'{opc:05b}'
-			toret += f'{int(params[1][1]):03b}'
-			toret += f'{mem.var_addr(params[2]):08b}'
-		
-		case 'E':
-			toret += f'{opc:05b}'
-			toret += f'{0:03b}'
-			toret += f'{mem.label_addr(params[1]):08b}'
-		
-		case 'F':
-			toret += f'{opc:05b}'
-			toret += f'{0:011b}'
-			"""
 	if ctg == 'A':
 		toret += f'{opc:05b}'  # opc = 0 => 0 to 5 bit binary => 00000
 		toret += f'{0:02b}'  # unused 2 bits => 0 to 2 bit binary => 00
 		toret += f'{int(params[1][1]):03b}'  # R0 => 0 => 0 to 3 bit binary => 000
 		toret += f'{int(params[2][1]):03b}'  # R1 => 1 => 1 to 3 bit binary => 001
 		toret += f'{int(params[3][1]):03b}'  # R2 => 2 => 2 to 3 bit binary => 010
-	# toret = "0000000000001010"
 	
 	elif ctg == 'B':
 		toret += f'{opc:05b}'

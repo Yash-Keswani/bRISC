@@ -1,7 +1,17 @@
-# UNUSED - the contents of this file were moved somewhere else and it may be removed in the future.
+import json
+import sys
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+from pathlib import Path
+from typing import IO
+
+@dataclass
+class Error():
+	text: str
+	line: int
 
 # maintains a mock memory for the assembler
-class Memory():
+class MockMemory():
 	def __init__(self, start_ptr: int):
 		self.mem: int = start_ptr  # where will the next variable be added
 		self.mem_labels: dict[str, int] = {}  # PC of all labels
@@ -33,3 +43,38 @@ class Memory():
 	def store_var(self, name: str) -> None:
 		self.mem_vars[name] = self.mem
 		self.mem += 1
+
+class ISA(ABC):
+	def __init__(self):
+		def openp(filepath: str) -> IO:
+			return open(Path(sys.modules[self.__module__].__file__).with_name(filepath))
+		
+		with openp("ins_encode.json") as fp:
+			self.insts = json.load(fp)
+		with openp("categories.json") as fp:
+			self.cats = json.load(fp)
+
+	@classmethod
+	@abstractmethod
+	def check_variant(cls, variant: str, line: str, PC: int, started: bool) -> tuple[bool, list[Error]]:
+		pass
+	
+	@classmethod
+	@abstractmethod
+	def check_cat(cls, opc: int, cat: str, line: str, mem: MockMemory, PC: int) -> tuple[bool, list[Error]]:
+		pass
+	
+	@classmethod
+	@abstractmethod
+	def encode(cls, opc: int, ctg: str, cmd: str, mem: MockMemory) -> str:
+		pass
+
+	@classmethod
+	@abstractmethod
+	def find_cat(cls, cmd: str) -> dict[str, int | str]:
+		pass
+	
+	@classmethod
+	@abstractmethod
+	def find_variant(cls, line: str) -> str:
+		pass

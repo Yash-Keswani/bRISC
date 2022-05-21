@@ -1,0 +1,22 @@
+{
+  "family": "ARM",
+  "memory": {
+    "mem_size": 256,
+    "ins_mem": -1,
+    "merged": true
+  },
+  "instruction":{
+    "size": 16,
+    "immediate_prefix": "$"
+  },
+  "registry": {
+    "general": 8,
+    "special": {
+    },
+    "flags": "FLAGS"
+  },
+  "assembler": {
+    "token_delimiter": " ",
+    "line_delimiter": "\n"
+  }
+}

@@ -1,10 +1,11 @@
 import os
 
-from .errors import Logger, check_cat, check_variant, Error
-from .memory import Memory
-from .reader import find_cat, find_variant, encode
+from .errors import Logger
+from ..ISA_Specs.base import ISA, MockMemory as Memory, Error
+from ..ISA_Specs.FancyRISC import ISA_FancyRISC
 
 def parse(text: str) -> tuple[list[int], str] | str:
+	isa: ISA = ISA_FancyRISC()
 	err = Logger()
 	commands: list[str] = []
 	fl: list[str] = [x.partition('#')[0] for x in text.split('\n')]
@@ -20,8 +21,8 @@ def parse(text: str) -> tuple[list[int], str] | str:
 	for PC, line in enumerate(fl):
 		line = line.strip()
 		
-		variant = find_variant(line)
-		error = check_variant(variant, line, PC, False)
+		variant = isa.find_variant(line)
+		error = isa.check_variant(variant, line, PC, False)
 		
 		if error[0] or variant == 'blank':
 			continue
@@ -47,14 +48,14 @@ def parse(text: str) -> tuple[list[int], str] | str:
 			if (not line.endswith('hlt')):
 				err.log_errors(PC + 1, [Error('hlt not present at end of code', PC)])
 		
-		variant = find_variant(line)
-		error = check_variant(variant, line, PC, len(sourcemap) > 0)
+		variant = isa.find_variant(line)
+		error = isa.check_variant(variant, line, PC, len(sourcemap) > 0)
 		
 		if variant == 'label':
 			# Turns label into instruction 'labelname: add R0 R1 R2' => 'add R0 R1 R2'
 			line = line.split(':')[1].lstrip()
-			variant = find_variant(line)
-			check_variant(variant, line, PC, len(sourcemap) > 0)
+			variant = isa.find_variant(line)
+			isa.check_variant(variant, line, PC, len(sourcemap) > 0)
 		
 		if error[0]:  # variant error handling
 			err.log_errors(PC + 1, error[1])
@@ -64,15 +65,15 @@ def parse(text: str) -> tuple[list[int], str] | str:
 			continue
 		
 		if variant == 'instruction':
-			opc, cat = find_cat(line)['opcode'], find_cat(line)['cat']
-			error = check_cat(opc, cat, line, mem, PC)
+			opc, cat = isa.find_cat(line)['opcode'], isa.find_cat(line)['cat']
+			error = isa.check_cat(opc, cat, line, mem, PC)
 			
 			# handles instruction category-specific errors
 			if error[0]:
 				err.log_errors(PC + 1, error[1])
 				continue
 			
-			buffer = encode(opc, cat, line, mem)
+			buffer = isa.encode(opc, cat, line, mem)
 			sourcemap.append(PC)
 			commands.append(buffer)
 	
