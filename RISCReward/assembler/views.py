@@ -14,6 +14,9 @@ def index(request: HttpRequest):
 def index2(request: HttpRequest):
 	return render(request, "assembler/index2.html", {})
 
+def specs(request: HttpRequest):
+	return render(request, "assembler/isa_specs.json", {}, content_type='application/json')
+
 @require_POST
 def process(request: HttpRequest) -> HttpResponse:
 	data = json.loads(request.body)
@@ -33,12 +36,12 @@ def process(request: HttpRequest) -> HttpResponse:
 		else:
 			raise AssertionError("Mode must be run, debug, or step")
 		
-		output = Executor.process(pipelined=True, token=data.get("session_token"), action=mode)
+		output = Executor.process(pipelined=False, token=data.get("session_token"), action=mode)
 		out = output["state_dump"]
 		pl = output["pipeline"]
 		mem = output["mem_dump"]
 		token = output["token"]
-		regs = "\n".join(output["regs"].split())
+		regs = "\n".join([f"{x}|{int(x, base=2)}" for x in output["regs"].split()])
 		state = json.dumps([x.__dict__ for x in output["state"]])
 		
 		pipeline = [[" " for x in range(len(pl))] for y in range(len(bin_cod[0]))]

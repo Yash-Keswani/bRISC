@@ -105,7 +105,7 @@
                 </button>
                 <button class="btn btn-dark" type="button"
                         style="height: 20%;min-height: 20%;max-height: 20%;margin: 5% 0;font-size: 1.2vw;font-family: monospace;"
-                        onclick="flip_views('debug, specs', this)" id="ISA Specs">
+                        onclick="location.href='/assembler/specs'" id="ISA Specs">
                     ISA Specs
                 </button>
                 <button class="btn btn-dark" type="button"
@@ -206,6 +206,7 @@
                 } else{
                     toret.push(elem)
                 }
+
             })
             return toret
         } else{
@@ -247,7 +248,7 @@
                 return Object.keys(src_map)[row];
             }
         }
-        const register_values = ["R0", "R1", "R2", "R3", "R4", "R5", "R6", "R7",
+        const register_values = ["R0", "R1", "R2", "R3", "R4", "R5", "R6", "FL",
             "RSL", "RSS", "RSC", "RSF", "RSN", "RSR", "RSA"]
         regs.session.gutterRenderer =  {
             getWidth: function(session, lastLineNumber, config) {

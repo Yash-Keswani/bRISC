@@ -133,10 +133,11 @@ class Executor:
 				
 				toret["reg_dump"] += f"{curr_line.lno:08b} {cls.reg.fetch_reg()}"
 				toret["state_dump"] += curr_line.__str__()
-			toret["mem_dump"] = cls.mem.fetch_mem()
-			toret["pipeline"] = Pipeline.getUsage()
-			return toret
-		
+				
+				if action is Mode.STEP or action is Mode.DEBUG:
+					break
+			lineobj = [curr_line]
+
 		else:
 			while cls.reg.PC < cls.size or any((not lineobj[x].empty() for x in range(5))) or cls.reg.PC == 0:
 				lineobj.pop()
@@ -190,20 +191,20 @@ class Executor:
 				if action is Mode.STEP or action is Mode.DEBUG:
 					break
 			
-			state = template_pb2.running_state()
-			state.STALLING = STALLING
-			state.BRANCHING = BRANCHING
-			for x in lineobj:
-				state.lines.add().CopyFrom(x.__serialise__())
-			
-			if token is None:
-				token = cls.serialise(state)
-			else:
-				cls.serialise(state, token)
-			
-			toret["mem_dump"] = cls.mem.fetch_mem()
-			toret["pipeline"] = Pipeline.getUsage()
-			toret["state"] = lineobj
-			toret["regs"] = cls.reg.fetch_reg()
-			toret["token"] = token
-			return toret
+		state = template_pb2.running_state()
+		state.STALLING = STALLING
+		state.BRANCHING = BRANCHING
+		for x in lineobj:
+			state.lines.add().CopyFrom(x.__serialise__())
+		
+		if token is None:
+			token = cls.serialise(state)
+		else:
+			cls.serialise(state, token)
+		
+		toret["mem_dump"] = cls.mem.fetch_mem()
+		toret["pipeline"] = Pipeline.getUsage()
+		toret["state"] = lineobj
+		toret["regs"] = cls.reg.fetch_reg()
+		toret["token"] = token
+		return toret

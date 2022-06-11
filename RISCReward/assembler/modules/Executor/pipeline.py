@@ -115,7 +115,7 @@ class Pipeline:
 				if not cls.reg.waiting[dest]:
 					cls.reg.hold(dest)
 			else:
-				if not cls.mem.waiting[dest]:
+				if not cls.mem.waiting.get(dest):
 					cls.mem.hold(dest)
 		
 		if line.opc == 0b01110 or line.cat == 'A':  # overflow is a bitch
