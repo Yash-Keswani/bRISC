@@ -2,16 +2,13 @@
   "family": "ARM",
   "memory": {
     "mem_size": 256,
+    "ins_space": [0,255],
     "ins_mem": -1,
     "merged": true
   },
   "instruction":{
     "size": 16,
-    "prefixes": {
-      "immediate": "$",
-      "register": "R",
-      "memory": ""
-    }
+    "immediate_prefix": "$"
   },
   "registry": {
     "general": 8,

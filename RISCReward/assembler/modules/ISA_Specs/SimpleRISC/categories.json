@@ -1,0 +1,86 @@
+{
+  "A0": {
+    "name": "Reg Reg Reg",
+    "switcher": 0,
+    "encoding": {
+      "opcode": 5,
+      "switcher": 1,
+      "reg_d_0": 4,
+      "reg_s_0": 4,
+      "reg_s_1": 4,
+      "padding": 14
+    }
+  },
+  "A1": {
+    "name": "Reg Reg Imm",
+    "switcher": 1,
+    "encoding": {
+      "opcode": 5,
+      "switcher": 1,
+      "reg_d_0": 4,
+      "reg_s_0": 4,
+      "mod": 2,
+      "immediate": 16
+    }
+  },
+  "B": {
+    "name": "Register Immediate Offset",
+    "encoding": {
+      "opcode": 5,
+      "reg_d_0": 4,
+      "immediate-offset": [16, 4],
+      "padding": 3
+    }
+  },
+  "C0": {
+    "name": "Reg Reg",
+    "switcher": 0,
+    "encoding": {
+      "opcode": 5,
+      "switcher": 1,
+      "reg_d_0": 4,
+      "reg_s_0": 4,
+      "padding": 18
+    }
+  },
+  "C1": {
+    "name": "Reg Imm",
+    "switcher": 1,
+    "encoding": {
+      "opcode": 5,
+      "switcher": 1,
+      "reg_d_0": 4,
+      "immediate": 16,
+      "padding": 6
+    }
+  },
+  "D0": {
+    "name": "RegSrc Reg",
+    "switcher": 0,
+    "encoding": {
+      "opcode": 5,
+      "switcher": 1,
+      "reg_s_0": 4,
+      "reg_s_1": 4,
+      "padding": 18
+    }
+  },
+  "D1": {
+    "name": "RegSrc Imm",
+    "switcher": 1,
+    "encoding": {
+      "opcode": 5,
+      "switcher": 1,
+      "reg_s_0": 4,
+      "immediate": 16,
+      "padding": 6
+    }
+  },
+  "E": {
+    "name": "Parameterless",
+    "encoding": {
+      "opcode": 5,
+      "unused": 27
+    }
+  }
+}
