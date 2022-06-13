@@ -3,50 +3,50 @@
     "name": "3 Register Type",
     "encoding": {
       "opcode": 5,
-      "unused": 2,
-      "reg1": 3,
-      "reg2": 3,
-      "reg3": 3
+      "padding": 2,
+      "reg_d|0": 3,
+      "reg_s|0": 3,
+      "reg_s|1": 3
     }
   },
   "B": {
     "name": "Register and Immediate Type",
     "encoding": {
       "opcode": 5,
-      "reg1": 3,
-      "imm": 8
+      "reg_d|0": 3,
+      "imm_int": 8
     }
   },
   "C": {
     "name": "2 Register Type",
     "encoding": {
       "opcode": 5,
-      "unused": 5,
-      "reg1": 3,
-      "reg2": 3
+      "padding": 5,
+      "reg_d|0": 3,
+      "reg_s|0": 3
     }
   },
   "D": {
     "name": "Register and Memory Address Type",
     "encoding": {
       "opcode": 5,
-      "reg1": 3,
-      "mem": 8
+      "reg_d|0": 3,
+      "var_data": 8
     }
   },
   "E": {
     "name": "Memory Address Type",
     "encoding": {
       "opcode": 5,
-      "unused": 3,
-      "mem": 8
+      "padding": 3,
+      "label": 8
     }
   },
   "F": {
     "name": "Halt Instruction Specific",
     "encoding": {
       "opcode": 5,
-      "unused": 11
+      "padding": 11
     }
   }
 }

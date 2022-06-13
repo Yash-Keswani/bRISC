@@ -1,12 +1,13 @@
 {
   "family": "ARM",
   "memory": {
-    "mem_size": 256,
-    "ins_mem": -1,
+    "data_space": [0, 255],
+    "ins_space": [0, 255],
     "merged": true
   },
   "instruction":{
     "size": 16,
+    "opcode_size": 5,
     "prefixes": {
       "immediate": "$",
       "register": "R",
@@ -17,10 +18,21 @@
     "general": 8,
     "special": {
     },
-    "flags": "FLAGS"
+    "flags": {
+      "name": "FLAGS",
+      "value": 7
+    }
   },
   "assembler": {
-    "token_delimiter": " ",
+    "prefixes": {
+      "label": "",
+      "variable": "var"
+    },
+    "suffixes": {
+      "label": ":"
+    },
+    "ins_delimiter": " ",
+    "param_delimiter": " ",
     "line_delimiter": "\n"
   }
 }

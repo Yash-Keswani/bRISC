@@ -1,84 +1,84 @@
 import os
 
-from .errors import Logger
-from ..ISA_Specs.base import ISA, MockMemory as Memory, Error
+from ..ISA_Specs.base import ISA
+from ..ISA_Specs.imports import MockMemory as Memory, CONF, ErrorLogger, Variant
 from ..ISA_Specs.FancyRISC import ISA_FancyRISC
 
 def parse(text: str) -> tuple[list[int], str] | str:
+	if CONF.IMPORTED_ISA != "FancyRISC":
+		CONF.reload("FancyRISC")
 	isa: ISA = ISA_FancyRISC()
-	err = Logger()
+	err = ErrorLogger
 	commands: list[str] = []
+	
+	# remove comments
 	fl: list[str] = [x.partition('#')[0] for x in text.split('\n')]
 	
 	# only include instructions in line count
 	ins_cnt = len([x for x in fl if x.strip() != '' and not x.strip().startswith('var')])
 	line_cnt = len(fl)
 	
-	mem = Memory(ins_cnt)
+	Memory.load(ins_cnt)
 	
 	# FIRST PASS - SETS VARIABLES
 	insts = 0
-	for PC, line in enumerate(fl):
+	for lno, line in enumerate(fl):
+		ErrorLogger.tick()
 		line = line.strip()
 		
 		variant = isa.find_variant(line)
-		error = isa.check_variant(variant, line, PC, False)
+		error = isa.check_variant(variant, line, False)
 		
-		if error[0] or variant == 'blank':
+		if error:
 			continue
 		
-		elif variant == 'label':  # will always be followed by instruction
-			mem.store_label(line.split(':')[0], insts)
-			insts += 1
+		if variant == Variant.lab:  # may not always be followed by instruction
+			Memory.store_label(line.split(':')[0], insts)
+			variant = isa.find_variant(line)
+			error = isa.check_variant(variant, line, False)
+			
+		if error or variant == Variant.blank:
+			continue
 		
-		elif variant == 'variable':
-			mem.store_var(line[4:])  # excluding 'var '
+		elif variant == Variant.var:
+			Memory.store_var(line[4:])  # excluding 'var '
 		
 		else:
 			insts += 1
 	
 	# SECOND PASS
 	sourcemap: list[int] = []
-	for PC, line in enumerate(fl):
+	for lno, line in enumerate(fl):
 		line = line.strip()
 		
-		if (any((x.strip() != '' for x in fl[PC + 1:])) and line.endswith('hlt')):
-			err.log_errors(PC, [Error('hlt present before end of code', PC)])
-		if (PC >= line_cnt):
+		if (any((x.strip() != '' for x in fl[lno + 1:])) and line.endswith('hlt')):
+			err.log('hlt present before end of code')
+		if (lno >= line_cnt):
 			if (not line.endswith('hlt')):
-				err.log_errors(PC + 1, [Error('hlt not present at end of code', PC)])
+				err.log('hlt not present at end of code')
 		
 		variant = isa.find_variant(line)
-		error = isa.check_variant(variant, line, PC, len(sourcemap) > 0)
+		error = isa.check_variant(variant, line, len(sourcemap) > 0)
 		
-		if variant == 'label':
+		if variant == Variant.lab:
 			# Turns label into instruction 'labelname: add R0 R1 R2' => 'add R0 R1 R2'
 			line = line.split(':')[1].lstrip()
 			variant = isa.find_variant(line)
-			isa.check_variant(variant, line, PC, len(sourcemap) > 0)
+			isa.check_variant(variant, line, len(sourcemap) > 0)
 		
-		if error[0]:  # variant error handling
-			err.log_errors(PC + 1, error[1])
+		if error:  # variant error handling
 			continue  # stop processing the line here, go to the next line
 		
-		if variant == 'blank' or variant == 'variable':
+		if variant == Variant.blank or variant == Variant.var:
 			continue
 		
-		if variant == 'instruction':
-			opc, cat = isa.find_cat(line)['opcode'], isa.find_cat(line)['cat']
-			error = isa.check_cat(opc, cat, line, mem, PC)
-			
-			# handles instruction category-specific errors
-			if error[0]:
-				err.log_errors(PC + 1, error[1])
-				continue
-			
-			buffer = isa.encode(opc, cat, line, mem)
-			sourcemap.append(PC)
-			commands.append(buffer)
+		if variant == Variant.ins:
+			tokens = isa.tokenise(line)
+			commands.append(isa.encode(tokens))
 	
-	if err.errors_present():
-		return [-1], '\n'.join(err.get_errors())
+	errors = ErrorLogger.get_err()
+	if any(len(x) > 0 for x in errors):
+		return [-1], str(errors)
 	else:
 		if os.environ.get("TESTING") == '1':
 			return '\n'.join(commands)

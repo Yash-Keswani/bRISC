@@ -1,178 +1,80 @@
-import json
-import sys
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from pathlib import Path
-from typing import IO
-from .imports import conf, opcodes, insts
 
-from .rules import Rule, ValidGeneralRegister, ValidSpecialRegister, ValidOpcode,	ValidFlagsRegister, ValidHeapMemoryAddress
+from .imports import Variant, Error, ErrorLogger, CONF
 
-@dataclass
-class Error():
-	text: str
-	line: int
-
-class Token(ABC):
-	@property
-	@abstractmethod
-	def rules(self) -> list[list[Rule]]:
-		raise NotImplementedError
-	
-	def __init__(self, _value: int | str, _size: int):
-		self.value: int | str = _value
-		self.size: int = _size
-
-	def verify(self) -> bool:
-		for ruleset in self.rules:
-			if not any((x.check(self.value) for x in ruleset)):
-				return False
-		return True
-	
-	def encode(self) -> str:
-		return f"{self.value: 0{self.size}b}"
-
-class RegisterSrc(Token):
-	def __init__(self, _value, _size):
-		super().__init__(_value, _size)
-	rules: list[Rule] = [[ValidGeneralRegister, ValidSpecialRegister, ValidFlagsRegister]]
-	
-	def encode(self) -> str:
-		num = int(self.value.lstrip(conf.instructions.prefixes.register))
-		return f"{num:0{self.size}b}"
-	
-class RegisterDest(Token):
-	def __init__(self, _value, _size):
-		super().__init__(_value, _size)
-	rules: list[Rule] = [[ValidGeneralRegister, ValidSpecialRegister]]
-	
-	def encode(self) -> str:
-		num = int(self.value.lstrip(conf.instructions.prefixes.register))
-		return f"{num:0{self.size}b}"
-
-class OpCode(Token):
-	def __init__(self, _value, _size):
-		super().__init__(_value, _size)
-	rules: list[Rule] = [[ValidOpcode]]
-
-class MemAddress(Token):
-	def __init__(self, _value, _size):
-		super().__init__(_value, _size)
-	rules: list[Rule] = [[ValidHeapMemoryAddress]]
-	
-
-# maintains a mock memory for the assembler
-class MockMemory():
-	def __init__(self, start_ptr: int):
-		self.mem: int = start_ptr  # where will the next variable be added
-		self.mem_labels: dict[str, int] = {}  # PC of all labels
-		self.mem_vars: dict[str, int] = {}  # memory address of all variables
-	
-	# checks if a certain label is present in the memory
-	def has_label(self, name: str) -> bool:
-		return name in self.mem_labels
-	
-	# checks if a certain variable is present in the memory
-	def has_var(self, name: str) -> bool:
-		return name in self.mem_vars
-	
-	# returns the memory address of a named label
-	def label_addr(self, name: str) -> int:
-		assert self.has_label(name), "label not present in memory"
-		return self.mem_labels[name]
-	
-	# returns the memory address of a named variable
-	def var_addr(self, name: str) -> int:
-		assert self.has_var(name), "variable not present in memory"
-		return self.mem_vars[name]
-	
-	# stores a label with the PC to which it corresponds
-	def store_label(self, name: str, PC: int) -> None:
-		self.mem_labels[name] = PC
-	
-	# stores a variable with the memory location to which it corresponds
-	def store_var(self, name: str) -> None:
-		self.mem_vars[name] = self.mem
-		self.mem += 1
+from .tokens import RegSrc, RegDest, Inst, Padding, Switcher, Modifier, ImmInt, ImmInsPtr, ImmDataPtr, Token, OpCode, \
+	Label, VarData
 
 class ISA(ABC):
 	def __init__(self):
-		def openp(filepath: str) -> IO:
-			return open(Path(sys.modules[self.__module__].__file__).with_name(filepath))
-		
-		with openp("ins_encode.json") as fp:
-			self.insts = json.load(fp)
-		with openp("categories.json") as fp:
-			self.cats = json.load(fp)
-		with openp("system_specifications.json") as fp:
-			self.conf = json.load(fp)
+		conf = CONF.conf
+		self.delimIns = conf.assembler.ins_delimiter
+		self.delimParam = conf.assembler.param_delimiter
+		self.lineDelim = conf.assembler.line_delimiter
+		self.labelPre = conf.assembler.prefixes.label
+		self.labelSuf = conf.assembler.suffixes.label
+		self.varPrefix = conf.assembler.prefixes.variable
+		self.opcodeSize = conf.instruction.opcode_size
 
 	@classmethod
 	@abstractmethod
-	def check_variant(cls, variant: str, line: str, PC: int, started: bool) -> tuple[bool, list[Error]]:
+	def check_variant(cls, variant: Variant, line: str, started: bool) -> tuple[bool, list[Error]]:
 		pass
 	
-	def tokenise(self, line: str) -> list[Token]:
-		pass
+	def find_variant(self, line: str) -> Variant:
+		if line == '':
+			return Variant.blank
+		elif self.labelSuf in line[1:]:  # TODO: make these regex queries to check for suffixes as well
+			return Variant.lab
+		elif line.startswith(self.varPrefix):
+			return Variant.var
+		return Variant.ins
 	
-	@classmethod
-	@abstractmethod
-	def check_cat(cls, opc: int, cat: str, line: str, mem: MockMemory, PC: int) -> tuple[bool, list[Error]]:
-		pass
+	@staticmethod
+	def parse_formatters(formatters: dict[str, int]) -> list[(list[Token], int)]:
+		fmt_dict = {"reg_s": RegSrc, "reg_d": RegDest, 'imm_ins': ImmInsPtr, 'imm_data': ImmDataPtr, 'imm_int': ImmInt, 'opcode': OpCode, "padding": Padding, "switcher": Switcher, "modifier": Modifier, 'var_data': VarData, 'label': Label}
+		fmtrs = []
+		for fmt, size in formatters.items():
+			fmtrs.append((fmt_dict[fmt.partition('|')[0]], size))
+			
+		return fmtrs
 	
-	def encode(self, opc: int, ctg: str, cmd: str, mem: MockMemory) -> str:
-		tokens = cmd.split()
-		toret = ""
-		encoding: dict[str, int] = self.cats[tokens[0]]
+	def tokenise(self, instruction: str) -> list[Token]:
+		ins_text, ignored, params_text = instruction.partition(self.delimIns)
+		ins = Inst(ins_text, self.opcodeSize)
+		params = [ins]
+		params.extend([x for x in params_text.split(self.delimParam) if x != ''])
 		
-		start: int = 0
-		for parameter in encoding:
-			if parameter == "padding":
+		tokens: list[Token] = []
+		for opcode, pattern in ins.patterns:
+			tokens: list[Token] = []
+			params[0] = str(int(opcode[2:], base=2))  # we assume 'opcode' to be the actual opcode and verify this claim
+			ErrorLogger.dump()
+			
+			formatters = self.parse_formatters(pattern['encoding'])
+			num_params = sum([1 for x in formatters if not x[0].silent])
+			
+			if num_params != len(params):
+				ErrorLogger.buf_log(f"Invalid number of parameters: {len(params)}")
 				continue
-		
-		if ctg == 'A':
-			toret += f'{opc:05b}'  # opc = 0 => 0 to 5 bit binary => 00000
-			toret += f'{0:02b}'  # unused 2 bits => 0 to 2 bit binary => 00
-			toret += f'{int(tokens[1][1]):03b}'  # R0 => 0 => 0 to 3 bit binary => 000
-			toret += f'{int(tokens[2][1]):03b}'  # R1 => 1 => 1 to 3 bit binary => 001
-			toret += f'{int(tokens[3][1]):03b}'  # R2 => 2 => 2 to 3 bit binary => 010
-		
-		elif ctg == 'B':
-			toret += f'{opc:05b}'
-			toret += f'{int(tokens[1][1]):03b}'
-			toret += f'{int(tokens[2][1:]):08b}'
-		
-		elif ctg == 'C':
-			toret += f'{opc:05b}'
-			toret += f'{0:05b}'
-			toret += f'{int(tokens[1][1]):03b}'
-			try:
-				toret += f'{int(tokens[2][1]):03b}'
-			except ValueError:
-				toret += f'{7:03b}'
-		
-		elif ctg == 'D':
-			toret += f'{opc:05b}'
-			toret += f'{int(tokens[1][1]):03b}'
-			toret += f'{mem.var_addr(tokens[2]):08b}'
-		
-		elif ctg == 'E':
-			toret += f'{opc:05b}'
-			toret += f'{0:03b}'
-			toret += f'{mem.label_addr(tokens[1]):08b}'
-		
-		elif ctg == 'F':
-			toret += f'{opc:05b}'
-			toret += f'{0:011b}'
-		
+			
+			i = 0
+			for fmtr, size in formatters:
+				if fmtr == Padding:
+					tokens.append(Padding(0, size))
+				elif fmtr == Switcher:
+					tokens.append(Switcher(pattern['switcher'], size))
+				else:
+					tokens.append(fmtr(params[i], size))
+					i += 1
+					
+			if all(token.verify() for token in tokens):
+				break
+				
+		return tokens
+	
+	def encode(self, tokens: list[Token]) -> str:
+		toret = ""
+		for token in tokens:
+			toret += token.encode()
 		return toret
-	
-	@classmethod
-	@abstractmethod
-	def find_cat(cls, cmd: str) -> dict[str, int | str]:
-		pass
-	
-	@classmethod
-	@abstractmethod
-	def find_variant(cls, line: str) -> str:
-		pass
