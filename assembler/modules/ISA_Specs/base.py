@@ -1,3 +1,5 @@
+from __future__ import annotations  # 3.9 compatibility hack
+
 from abc import ABC, abstractmethod
 
 from .imports import Variant, Error, ErrorLogger, CONF

@@ -1,3 +1,4 @@
+from __future__ import annotations  # 3.9 compatibility hack
 from ..Packaging import template_pb2
 
 def copy_dict(dict1: dict[any], dict2: dict[any]):
