@@ -1,3 +1,4 @@
+from __future__ import annotations  # 3.9 Compatibility Hack
 import json
 from dataclasses import dataclass
 from enum import Enum
