@@ -27,6 +27,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", "WEBUILTTHISCITY")
 DEBUG = True
 
 ALLOWED_HOSTS = ["127.0.0.1", "0.0.0.0"]
+CSRF_TRUSTED_ORIGINS = ['https://*.azurewebsites.net', 'https://*.127.0.0.1', 'https://*.railway.app']
 
 # Application definition
 
