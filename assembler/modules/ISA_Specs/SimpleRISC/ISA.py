@@ -1,4 +1,6 @@
-from ..base import Error, MockMemory as Memory, ISA
+from __future__ import annotations  # 3.9 Compatibility Hack
+from ..base import Error, ISA
+from ..imports import MockMemory as Memory
 import json
 import re
 

@@ -1,3 +1,4 @@
+from __future__ import annotations  # 3.9 Compatibility Hack
 from abc import ABC, abstractmethod
 from .imports import CONF, ErrorLogger, MockMemory
 

@@ -1,5 +1,5 @@
+from __future__ import annotations  # 3.9 Compatibility Hack
 import os
-
 from ..ISA_Specs.base import ISA
 from ..ISA_Specs.imports import MockMemory as Memory, CONF, ErrorLogger, Variant
 from ..ISA_Specs.FancyRISC import ISA_FancyRISC

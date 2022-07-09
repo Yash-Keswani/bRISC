@@ -2,7 +2,7 @@ from __future__ import annotations  # 3.9 compatibility hack
 
 from abc import ABC, abstractmethod
 
-from .imports import Variant, Error, ErrorLogger, CONF
+from .imports import Variant, Error, ErrorLogger, CONF, MockMemory
 
 from .tokens import RegSrc, RegDest, Inst, Padding, Switcher, Modifier, ImmInt, ImmInsPtr, ImmDataPtr, Token, OpCode, \
 	Label, VarData
