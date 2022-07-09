@@ -184,6 +184,7 @@
     consol.renderer.setShowGutter(false)
 
     async function query (url='', data={}){
+        data['csrfmiddlewaretoken'] = '{{ csrf_token }}'
         const response = await fetch(url, {
             method: 'POST',
             headers: {
