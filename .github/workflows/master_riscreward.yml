@@ -60,4 +60,4 @@ jobs:
         with:
           app-name: 'RISCReward'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_52487557E2D144AD923CF1FCB988FBC3 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_514FD0EB0CB7462D82A02B2CAD088E55 }}
