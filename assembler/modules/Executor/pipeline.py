@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from .controller import CU
-from .logic import LU
+from .logic import call
 from .storage import Registry, Memory
 from ..Packaging import template_pb2
 
@@ -124,7 +124,7 @@ class Pipeline:
 	@classmethod
 	@returnIfNone
 	def X(cls, line: LineInfo) -> None:
-		line.out = LU.call(line.opc, line.srcs)
+		line.out = call(line.opc, line.srcs)
 	
 	@classmethod
 	def set_next_get_branching(cls, line: LineInfo):
