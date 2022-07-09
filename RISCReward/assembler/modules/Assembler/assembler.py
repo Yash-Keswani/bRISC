@@ -74,6 +74,7 @@ def parse(text: str) -> tuple[list[int], str] | str:
 		
 		if variant == Variant.ins:
 			tokens = isa.tokenise(line)
+			sourcemap.append(lno)
 			commands.append(isa.encode(tokens))
 	
 	errors = ErrorLogger.get_err()
