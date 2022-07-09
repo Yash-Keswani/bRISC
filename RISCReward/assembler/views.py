@@ -36,7 +36,7 @@ def process(request: HttpRequest) -> HttpResponse:
 		else:
 			raise AssertionError("Mode must be run, debug, or step")
 		
-		output = Executor.process(pipelined=False, token=data.get("session_token"), action=mode)
+		output = Executor.process(pipelined=True, token=data.get("session_token"), action=mode)
 		out = output["state_dump"]
 		pl = output["pipeline"]
 		mem = output["mem_dump"]
