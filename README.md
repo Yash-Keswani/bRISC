@@ -6,3 +6,5 @@ https://brisc-production.up.railway.app/assembler/test
 basic RISC, a RISC with a custom ISA
 
 README is currently a WIP.
+
+test
