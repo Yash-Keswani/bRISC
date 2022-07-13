@@ -33,7 +33,7 @@ CSRF_TRUSTED_ORIGINS = ['https://*.azurewebsites.net', 'https://*.127.0.0.1', 'h
 
 INSTALLED_APPS = [
 	'assembler.apps.AssemblerConfig',
-	'django_crontab',
+	# 'django_crontab', # TODO: remove comment before pushing.
 	'django.contrib.admin',
 	'django.contrib.auth',
 	'django.contrib.contenttypes',

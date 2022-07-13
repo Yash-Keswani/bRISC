@@ -21,7 +21,7 @@ def specs(request: HttpRequest):
 def process(request: HttpRequest) -> HttpResponse:
 	data = json.loads(request.body)
 	bin_cod = parse(data["my_code"])
-	if (bin_cod[0][0] != -1):
+	if (len(bin_cod[0]) > 0):
 		Executor.load_code(bin_cod[1])
 		# Bbin = "".join([f"{x[0]}) {x[1]}\n" for x in zip(bin_cod[0], bin_cod[1].split("\n"))])
 		# srcmap = bin_cod[0]

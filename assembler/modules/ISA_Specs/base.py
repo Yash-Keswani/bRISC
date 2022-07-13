@@ -41,13 +41,14 @@ class ISA(ABC):
 			
 		return fmtrs
 	
-	def tokenise(self, instruction: str) -> list[Token]:
+	def tokenise(self, instruction: str) -> tuple[bool, list[Token]]:
 		ins_text, ignored, params_text = instruction.partition(self.delimIns)
 		ins = Inst(ins_text, self.opcodeSize)
 		params = [ins]
 		params.extend([x for x in params_text.split(self.delimParam) if x != ''])
 		
 		tokens: list[Token] = []
+		hasErrors = True
 		for opcode, pattern in ins.patterns:
 			tokens: list[Token] = []
 			params[0] = str(int(opcode[2:], base=2))  # we assume 'opcode' to be the actual opcode and verify this claim
@@ -71,9 +72,10 @@ class ISA(ABC):
 					i += 1
 					
 			if all(token.verify() for token in tokens):
+				hasErrors=False
 				break
 				
-		return tokens
+		return hasErrors, tokens
 	
 	def encode(self, tokens: list[Token]) -> str:
 		toret = ""

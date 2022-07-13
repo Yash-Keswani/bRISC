@@ -57,6 +57,12 @@ class ErrorLogger():
 	err_buffer: list[Error] = []
 	
 	@classmethod
+	def reset(cls):
+		cls.lno = -1
+		cls.err = []
+		cls.err_buffer = []
+	
+	@classmethod
 	def tick(cls):
 		cls.lno += 1
 		cls.err.append([])
