@@ -1,11 +1,18 @@
-{
+ { "TODO": "fix limits",
   "add": [
     {
       "opcode": "0b00000",
       "semantics": "Stores <R2> + <R3> in <R1>",
       "notes": "May set the overflow flag. Upper limit is 65536",
       "syntax": "ADD <R1> <R2> <R3>",
-      "type": "A"
+      "type": "A0"
+    },
+    {
+      "opcode": "0b00000",
+      "semantics": "Stores <R2> + <Imm> in <R1>",
+      "notes": "May set the overflow flag. Upper limit is 65536",
+      "syntax": "ADD <R1> <R2> $<Imm>",
+      "type": "A1"
     }
   ],
   "sub": [
@@ -14,7 +21,14 @@
       "semantics": "Stores <R2> - <R3> in <R1>.",
       "notes": "May set the overflow flag. Lower Limit is 0",
       "syntax": "SUB <R1> <R2> <R3>",
-      "type": "A"
+      "type": "A0"
+    },
+    {
+      "opcode": "0b00001",
+      "semantics": "Stores <R2> - $<Imm> in <R1>.",
+      "notes": "May set the overflow flag. Lower Limit is 0",
+      "syntax": "SUB <R1> <R2> $<Imm>",
+      "type": "A1"
     }
   ],
   "mov": [
@@ -23,14 +37,14 @@
       "semantics": "Copies the value of $<Imm> into <R1>.",
       "notes": "<Imm> must be an 8-bit value.",
       "syntax": "MOV <R1> $<Imm>",
-      "type": "B"
+      "type": "C1"
     },
     {
-      "opcode": "0b00011",
+      "opcode": "0b00010",
       "semantics": "Copies the value of <R2> into <R1>.",
       "notes": "Special-use registers can be read from, but not written into.",
       "syntax": "MOV <R1> <R2>",
-      "type": "C"
+      "type": "C0"
     }
   ],
   "ld": [
@@ -40,6 +54,13 @@
       "notes": "Memory address has a cap of 512. Avoid messing with instructions in the memory.",
       "syntax": "LD <R1> <ADDR>",
       "type": "D"
+    },
+    {
+      "opcode": "0b00100",
+      "semantics": "Loads the value from memory address <ADDR> to <R1>, at an offset of <R2>.",
+      "notes": "Memory address has a cap of 512. Avoid messing with instructions in the memory.<ADDR> will be treated as 0 if left blank",
+      "syntax": "LD <R1> <ADDR>[<R2>]",
+      "type": "D"
     }
   ],
   "st": [
@@ -48,6 +69,13 @@
       "semantics": "Stores the value in <R1> at the memory address <ADDR>.",
       "notes": "Memory address has a cap of 512. Avoid messing with instructions in the memory.",
       "syntax": "ST <R1> <ADDR>",
+      "type": "D"
+    },
+    {
+      "opcode": "0b00101",
+      "semantics": "Stores the value in <R1> at the memory address <ADDR>, at an offset of <R2>.",
+      "notes": "Memory address has a cap of 512. Avoid messing with instructions in the memory.",
+      "syntax": "ST <R1> <ADDR>[<R2>]",
       "type": "D"
     }
   ],

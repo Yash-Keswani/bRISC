@@ -23,16 +23,7 @@
       "immediate": 16
     }
   },
-  "B": {
-    "name": "Register Immediate Offset",
-    "encoding": {
-      "opcode": 5,
-      "reg_d|0": 4,
-      "immediate-offset": [16, 4],
-      "padding": 3
-    }
-  },
-  "C0": {
+  "B1": {
     "name": "Reg Reg",
     "switcher": 0,
     "encoding": {
@@ -43,7 +34,7 @@
       "padding": 18
     }
   },
-  "C1": {
+  "B0": {
     "name": "Reg Imm",
     "switcher": 1,
     "encoding": {
@@ -54,7 +45,16 @@
       "padding": 6
     }
   },
-  "D0": {
+  "B2": {
+    "name": "Register Immediate Offset",
+    "encoding": {
+      "opcode": 5,
+      "reg_d|0": 4,
+      "immediate-offset": [16, 4],
+      "padding": 3
+    }
+  },
+  "C0": {
     "name": "RegSrc Reg",
     "switcher": 0,
     "encoding": {
@@ -65,7 +65,7 @@
       "padding": 18
     }
   },
-  "D1": {
+  "C1": {
     "name": "RegSrc Imm",
     "switcher": 1,
     "encoding": {
@@ -76,7 +76,16 @@
       "padding": 6
     }
   },
-  "E": {
+  "C2": {
+    "name": "Register Immediate Offset",
+    "encoding": {
+      "opcode": 5,
+      "reg_s|0": 4,
+      "immediate-offset": [16, 4],
+      "padding": 3
+    }
+  },
+  "D": {
     "name": "Parameterless",
     "encoding": {
       "opcode": 5,
