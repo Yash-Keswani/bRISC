@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from .controller import CU
 from .logic import call
 from .storage import Registry, Memory
-from ..Packaging import template_pb2
+from Packaging import template_pb2
 
 def copy_dict(dict1: dict[any], dict2: dict[any]):
 	for key, value in dict2.items():

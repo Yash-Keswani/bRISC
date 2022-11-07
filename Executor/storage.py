@@ -1,5 +1,5 @@
 from __future__ import annotations  # 3.9 compatibility hack
-from ..Packaging import template_pb2
+from Packaging import template_pb2
 
 def copy_dict(dict1: dict[any], dict2: dict[any]):
 	for key, value in dict2.items():
@@ -47,18 +47,6 @@ class Registry(Locker):
 		self.PC = 0b0000_0000
 		self.FLAGS = 0b0000_0000_0000_0000
 		self.regs = [0b0000_0000_0000_0000] * 7  # general purpose registers
-		"""
-		self.sregs: dict[str | int] = {  # will take its place
-			"RSL": 0b0000_0000_0000_0000,
-			"RSS": 0b0000_0000_0000_0000,
-			"RSC": 0b0000_0000_0000_0000,
-			"RSF": 0b0000_0000_0000_0000,
-			"RSN": 0b0000_0000_0000_0000,
-			"RSR": 0b0000_0000_0000_0000,
-			"RSA": 0b0000_0000_0000_0000,
-			"RSX": 0b0000_0000_0000_0000
-		}
-		"""
 		self.locks = {X: 0 for X in range(8)}  # locked registers cannot be written into
 		self.waiting = {X: False for X in range(8)}  # locked registers cannot be written into
 	
@@ -67,7 +55,6 @@ class Registry(Locker):
 		toret.PC = self.PC
 		toret.FLAGS = self.FLAGS
 		toret.regs.extend(self.regs)
-		copy_dict(toret.sregs, self.sregs)
 		toret.all_locks.CopyFrom(super().__serialise__())
 		return toret
 	
@@ -75,7 +62,6 @@ class Registry(Locker):
 		self.PC = data.PC
 		self.FLAGS = data.FLAGS
 		self.regs = list(data.regs)
-		self.sregs = data.sregs
 		self.locks = data.all_locks.locks
 		self.waiting = data.all_locks.waiting
 	

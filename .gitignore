@@ -1,6 +1,2 @@
-*.obsidian/*
 venv/**
-**/staticfiles/**
-**/testcases/**
-**/cache/**
-*/server.py
+cache/**

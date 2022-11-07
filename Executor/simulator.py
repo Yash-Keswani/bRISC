@@ -5,7 +5,7 @@ from google.protobuf.json_format import MessageToJson
 
 from .pipeline import Pipeline, LineInfo
 from .storage import Registry, Memory
-from ..Packaging import template_pb2
+from Packaging import template_pb2
 
 CACHE_DIR = str(pathlib.Path(__file__).parent.resolve()) + '/../cache/'
 
@@ -38,7 +38,7 @@ class Executor:
 			token = str(uuid.uuid4())
 		towrite = MessageToJson(todump)
 		
-		with open(CACHE_DIR + token, "wb+") as fl:
+		with open(CACHE_DIR + token, "w+") as fl:
 			fl.write(towrite)
 		
 		return token
