@@ -35,6 +35,7 @@
   },
   "sw": {
     "opcode": "0100011",
+    "funct3": "010",
     "semantics": "Stores the value to memory address <RS2> + <Imm> from <RS1>.",
     "notes": "Memory address has a cap of 512. Avoid messing with instructions in the memory.",
     "syntax": "SW <RS1> <RS2> <Imm>",
@@ -54,9 +55,7 @@
     "funct7": "00000",
     "semantics": "Left shifts <RS1> by <RS2>, and stores it to <RD>",
     "syntax": "SLL <RD> <RS1> <RS2>",
-    "type": "R",
-    "src": [0, 1],
-    "dest": [0]
+    "type": "R"
   },
   "or": {
     "opcode": "0110011",
@@ -80,6 +79,6 @@
     "semantics": "Jumps by offset <Imm> if <RS1> and <RS2>",
     "notes": "",
     "syntax": "beq <RS1> <RS2> <address>",
-    "type": "S"
+    "type": "SB"
   }
 }

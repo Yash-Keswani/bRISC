@@ -84,14 +84,6 @@ class Pipeline:
 			cls.usage.append(list(row.reg_num))
 	
 	@classmethod
-	def getUsage(cls):
-		return cls.usage
-	
-	@classmethod
-	def setUsage(cls, usage):
-		cls.usage = usage
-	
-	@classmethod
 	@returnIfNone
 	def F(cls, line: LineInfo):
 		line.opc, line.cat = CU.interpret(line.line_text)
@@ -117,9 +109,6 @@ class Pipeline:
 			else:
 				if not cls.mem.waiting.get(dest):
 					cls.mem.hold(dest)
-		
-		if line.opc == 0b01110 or line.cat == 'A':  # overflow is a bitch
-			cls.reg.hold(7)
 	
 	@classmethod
 	@returnIfNone

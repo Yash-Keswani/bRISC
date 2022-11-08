@@ -156,7 +156,7 @@ class Executor:
 				Pipeline.M(lineobj[3])
 				Pipeline.W(lineobj[4])
 
-				if BRANCHING:  # Free all locks held by purged lines
+				if BRANCHING:  # Free all locks held by killed lines
 					for loc in set(lineobj[0].dests) | set(lineobj[1].dests):
 						if loc < 0:
 							continue
@@ -169,7 +169,8 @@ class Executor:
 						if i.opc == 0b01110 or i.cat == 'A':  # free implicit lock held on flags register
 							cls.reg.release(7)
 					
-					lineobj[0] = lineobj[1] = LineInfo()  # purge lines in F and D
+					lineobj[0] = LineInfo()  # kill lines in F and D
+					lineobj[1] = LineInfo()
 					STALLING = False
 
 				if not lineobj[4].empty():
@@ -191,7 +192,7 @@ class Executor:
 			cls.serialise(state, token)
 		
 		toret["mem_dump"] = cls.mem.fetch_mem()
-		toret["pipeline"] = Pipeline.getUsage()
+		toret["pipeline"] = Pipeline.usage
 		toret["state"] = lineobj
 		toret["regs"] = cls.reg.fetch_reg()
 		toret["token"] = token

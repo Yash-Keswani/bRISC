@@ -20,11 +20,30 @@ class CU:
 	# returns the opcode of a line
 	@staticmethod
 	def get_opcode(line: str):
+		"""
+		input:
+		line -> 32 bit binary string
+		
+		output:
+		return list[int]
+		up to 3 things returned - opcode, funct3, funct7
+		
+		TODO: naman shivam sunishka
+		"""
 		return int(line[0:5], base=2)
 	
 	# returns the type of the command from its opcode
 	@classmethod
 	def get_type_from_opcode(cls, opc: int) -> str:
+		"""
+		input:
+		opcode: int
+		
+		output:
+		return string with type
+		
+		TODO: sunishka
+		"""
 		for inst in cls.insts:  # Iterates through each instruction name
 			for form in cls.insts[inst]:  # Iterates through forms of each instruction
 				if form['opcode'].endswith(f'{opc:05b}'):
@@ -38,15 +57,18 @@ class CU:
 	
 	# gets the values used as source operand/s by a line of code
 	@classmethod
-	def fetch_sources(cls, opc: int, cat: str, line: str, mem: Memory, reg: Registry) -> list[int]:
+	def fetch_sources(cls, cat: str, line: str, mem: Memory, reg: Registry) -> list[int]:
+		"""
+		cat -> type [R, S, I, SB]
+		line -> binary string: 32-bit
+		
+		TODO: naman shivam
+		return rs1, rs2, imm
+		"""
 		if cat == 'A':
 			sources = [
 				reg.read_reg(int(line[10:13], base=2)),
 				reg.read_reg(int(line[13:], base=2))
-			]
-			locs = [
-				int(line[10:13], base=2),
-				int(line[13:], base=2)
 			]
 		elif cat == 'B':
 			sources = [
@@ -85,14 +107,19 @@ class CU:
 		else:
 			sources = locs = []
 		
-		for i in range(len(sources)):
-			if i not in lookup(cls.insts, opc)["src"]:
-				sources[i] = 0
 		return sources
 	
 	# gets the values used as destination operand/s by a line of code
 	@classmethod
-	def fetch_destinations(cls, opc: int, cat: str, line: str) -> list:
+	def fetch_destinations(cls, cat: str, line: str) -> list:
+		"""
+		cat -> type [R, I, S, SB]
+		line -> 32 bit binary string
+		
+		destination -> rd  [register number, or immediate (mem address)]
+		
+		TODO: naman shivam sunishka
+		"""
 		if cat == 'A':
 			dests = [
 				int(line[7:10], base=2)
